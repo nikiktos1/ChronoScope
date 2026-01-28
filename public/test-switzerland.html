@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест Швейцарии 2000</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        #map {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #333;
+        }
+        #info {
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="info">
+        <h2>Тест отображения Швейцарии в 2000 году</h2>
+        <p id="status">Загрузка данных...</p>
+    </div>
+    <div id="map"></div>
+
+    <script>
+        // Инициализация карты
+        const map = L.map('map').setView([46.8, 8.2], 7);
+
+        // Добавляем базовый слой
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Загружаем данные
+        fetch('/data/historical/world_2000.geojson')
+            .then(response => response.json())
+            .then(data => {
+                const statusEl = document.getElementById('status');
+                
+                // Ищем Швейцарию
+                const switzerland = data.features.find(f => 
+                    (f.properties.NAME || '').toLowerCase().includes('switzerland')
+                );
+
+                if (switzerland) {
+                    statusEl.innerHTML = `
+                        <strong>✅ Швейцария найдена!</strong><br>
+                        Название: ${switzerland.properties.NAME}<br>
+                        Тип геометрии: ${switzerland.geometry.type}<br>
+                        Размер геометрии: ${JSON.stringify(switzerland.geometry).length} символов<br>
+                        SUBJECTO: ${switzerland.properties.SUBJECTO}<br>
+                        PARTOF: ${switzerland.properties.PARTOF}
+                    `;
+
+                    // Добавляем Швейцарию на карту
+                    const swissLayer = L.geoJSON(switzerland, {
+                        style: {
+                            fillColor: '#ff0000',
+                            fillOpacity: 0.5,
+                            color: '#000000',
+                            weight: 2
+                        },
+                        onEachFeature: (feature, layer) => {
+                            layer.bindPopup(`
+                                <strong>${feature.properties.NAME}</strong><br>
+                                Тип: ${feature.geometry.type}<br>
+                                Размер: ${JSON.stringify(feature.geometry).length} символов
+                            `);
+                        }
+                    }).addTo(map);
+
+                    // Центрируем карту на Швейцарии
+                    map.fitBounds(swissLayer.getBounds());
+
+                    // Добавляем соседние страны для контекста
+                    const neighbors = ['Germany', 'France', 'Austria', 'Italy'];
+                    neighbors.forEach(name => {
+                        const country = data.features.find(f => 
+                            (f.properties.NAME || '').toLowerCase().includes(name.toLowerCase())
+                        );
+                        if (country) {
+                            L.geoJSON(country, {
+                                style: {
+                                    fillColor: '#cccccc',
+                                    fillOpacity: 0.3,
+                                    color: '#666666',
+                                    weight: 1
+                                }
+                            }).addTo(map);
+                        }
+                    });
+
+                } else {
+                    statusEl.innerHTML = '<strong>❌ Швейцария не найдена в данных!</strong>';
+                }
+            })
+            .catch(error => {
+                document.getElementById('status').innerHTML = 
+                    `<strong>❌ Ошибка загрузки:</strong> ${error.message}`;
+                console.error('Ошибка:', error);
+            });
+    </script>
+</body>
+</html>
