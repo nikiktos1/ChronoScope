@@ -35,7 +35,7 @@ export default function SupabaseMap({
 	alternativeData = null,
 }: SupabaseMapProps) {
 	const [mapData, setMapData] = useState<FeatureCollection | null>(null);
-	const [_availableYears, setAvailableYears] = useState<number[]>([]);
+	const [, setAvailableYears] = useState<number[]>([]);
 	const [currentYear, setCurrentYear] = useState(initialYear);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);

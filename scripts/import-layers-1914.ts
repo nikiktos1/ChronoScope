@@ -19,28 +19,27 @@ async function importLayers1914() {
   console.log("🚀 Importing additional layers for 1914...");
 
   // 1. Get or Create 1914 period ID
-  let { data: period, error: periodError } = await supabase
+  let periodData = await supabase
     .from("historical_periods")
     .select("id")
     .eq("year", 1914)
     .single();
 
-  if (periodError || !period) {
+  if (periodData.error || !periodData.data) {
     console.log("Creating period 1914...");
-    const { data: newPeriod, error: createError } = await supabase
+    periodData = await supabase
         .from("historical_periods")
         .insert({ year: 1914, name: "1914: The Eve of WWI" })
         .select()
         .single();
 
-    if (createError) {
-        console.error("❌ Error creating period:", createError);
+    if (periodData.error) {
+        console.error("❌ Error creating period:", periodData.error);
         return;
     }
-    period = newPeriod;
   }
 
-  const periodId = period!.id;
+  const periodId = periodData.data.id;
   console.log(`✅ Using Period ID: ${periodId}`);
 
   const layersData = [

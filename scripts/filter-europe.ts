@@ -21,7 +21,7 @@ const europeanKeywords = [
   'Kazan', 'Astrakhan', 'Circassia', 'Georgia', 'Armenia'
 ];
 
-const europeanFeatures = geojson.features.filter((f: any) => {
+const europeanFeatures = geojson.features.filter((f: { properties: { NAME?: string; SUBJECTO?: string; PARTOF?: string } }) => {
   const name = f.properties.NAME || '';
   const subjecto = f.properties.SUBJECTO || '';
   const partOf = f.properties.PARTOF || '';
@@ -36,7 +36,7 @@ const europeanFeatures = geojson.features.filter((f: any) => {
 console.log(`Отфильтровано европейских территорий: ${europeanFeatures.length}`);
 console.log('\nСписок:\n');
 
-europeanFeatures.forEach((f: any, i: number) => {
+europeanFeatures.forEach((f: { properties: { NAME: string } }, i: number) => {
   console.log(`${i + 1}. ${f.properties.NAME}`);
 });
 

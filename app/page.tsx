@@ -19,9 +19,9 @@ const SupabaseMapComponent = dynamic(() => import('@/components/SupabaseMap'), {
 export default function Home() {
   const [currentYear, setCurrentYear] = useState(1914);
   const [altHistoryEssay, setAltHistoryEssay] = useState<string | null>(null);
-  const [altMapData, setAltMapData] = useState<any | null>(null);
+  const [altMapData, setAltMapData] = useState<GeoJSON.FeatureCollection | null>(null);
 
-  const handleAltHistoryResult = (essay: string, mapData: any | null) => {
+  const handleAltHistoryResult = (essay: string, mapData: GeoJSON.FeatureCollection | null) => {
     setAltHistoryEssay(essay);
     setAltMapData(mapData);
   };

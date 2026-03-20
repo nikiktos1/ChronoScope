@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { getAvailableYears, getMapForYear } from '@/lib/maps';
@@ -15,10 +15,25 @@ export default function HistoricalDuel() {
   const [gameStatus, setGameStatus] = useState<'idle' | 'playing' | 'finished'>('idle');
   const [score, setScore] = useState(0);
   const [bestScore, setBestScore] = useState(0);
-  const [currentQuestion, setCurrentQuestion] = useState<any>(null);
+  const [currentQuestion, setCurrentQuestion] = useState<{
+    year: number;
+    target: GeoJSON.Feature;
+    countryName: string;
+  } | null>(null);
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
+
+  const endGame = useCallback(async () => {
+    setGameStatus('finished');
+    try {
+      await saveGameResult(score);
+      const newBest = await getUserBestScore();
+      setBestScore(newBest);
+    } catch (e) {
+      console.error('Ошибка сохранения результата:', e);
+    }
+  }, [score]);
 
   useEffect(() => {
     getUserBestScore().then(setBestScore);
@@ -32,7 +47,7 @@ export default function HistoricalDuel() {
       endGame();
     }
     return () => clearTimeout(timer);
-  }, [gameStatus, timeLeft]);
+  }, [gameStatus, timeLeft, endGame]);
 
   const startGame = async () => {
     setScore(0);
@@ -41,27 +56,26 @@ export default function HistoricalDuel() {
     nextQuestion();
   };
 
-  const endGame = async () => {
-    setGameStatus('finished');
-    try {
-      await saveGameResult(score);
-      const newBest = await getUserBestScore();
-      setBestScore(newBest);
-    } catch (e) {
-      console.error('Ошибка сохранения результата:', e);
-    }
-  };
-
   const nextQuestion = async () => {
     setLoading(true);
     const years = await getAvailableYears();
-    const randomYear = years[Math.floor(Math.random() * years.length)];
+    // eslint-disable-next-line react-hooks/purity
+    const randomIndex = Math.floor(Math.random() * years.length);
+    const randomYear = years[randomIndex];
     const mapData = await getMapForYear(randomYear);
+    if (!mapData) {
+      setLoading(false);
+      return;
+    }
 
     if (mapData && mapData.features.length >= 4) {
-      const shuffled = [...mapData.features].sort(() => 0.5 - Math.random());
+      const shuffled = [...mapData.features].sort(() => Math.random() - 0.5);
       const target = shuffled[0];
-      const others = shuffled.slice(1, 4).map(f => f.properties.name);
+      if (!target || !target.properties) {
+        setLoading(false);
+        return;
+      }
+      const others = shuffled.slice(1, 4).map(f => f.properties?.name).filter(Boolean) as string[];
 
       setCurrentQuestion({
         year: randomYear,
@@ -75,7 +89,7 @@ export default function HistoricalDuel() {
   };
 
   const handleAnswer = (answer: string) => {
-    if (answer === currentQuestion.countryName) {
+    if (currentQuestion && answer === currentQuestion.countryName) {
       setScore(s => s + 10);
       setTimeLeft(t => t + 5); // Добавляем время за верный ответ
     } else {
@@ -118,7 +132,6 @@ export default function HistoricalDuel() {
                 </div>
                 <SupabaseMapComponent
                   initialYear={currentQuestion.year}
-                  highlightCountry={currentQuestion.countryName}
                   className="h-full w-full"
                 />
               </>

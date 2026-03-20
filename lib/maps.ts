@@ -84,7 +84,7 @@ export async function getMapForYear(year: number) {
 	}
 
 	// Преобразуем в формат GeoJSON
-	const features: any[] = [];
+  const features: GeoJSON.Feature[] = [];
 	
 	countries?.forEach((country) => {
 		// Проверяем наличие геометрий
@@ -95,7 +95,8 @@ export async function getMapForYear(year: number) {
 		}
 
 		// Создаем отдельный Feature для каждой геометрии
-		geometries.forEach((geometry) => {
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		geometries.forEach((geometry: any) => {
 			if (!geometry.coordinates) {
 				console.warn(`Отсутствуют координаты для геометрии страны: ${country.name}`);
 				return;
@@ -122,7 +123,7 @@ export async function getMapForYear(year: number) {
 					part_of: country.part_of,
 				},
 				geometry: {
-					type: geometry.geometry_type,
+					type: geometry.geometry_type as "Point" | "MultiPoint" | "LineString" | "MultiLineString" | "Polygon" | "MultiPolygon",
 					coordinates: geometry.coordinates,
 				},
 			});

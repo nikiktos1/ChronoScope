@@ -2,7 +2,12 @@
 
 import { useState, useRef, useEffect } from 'react';
 
-export default function AIHistoryGenerator({ onResult }: any) {
+interface AIHistoryGeneratorProps {
+  onResult?: (essay: string, mapData: null) => void;
+  currentYear?: number;
+}
+
+export default function AIHistoryGenerator({ onResult }: AIHistoryGeneratorProps) {
   const [messages, setMessages] = useState<{role: string, content: string}[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -87,13 +92,13 @@ export default function AIHistoryGenerator({ onResult }: any) {
                     onClick={() => setInput("Что если Наполеон победил?")}
                     className="text-[10px] bg-gray-800 text-gray-400 p-2 rounded hover:bg-gray-700 text-left"
                   >
-                    "Что если Наполеон победил?"
+                    &quot;Что если Наполеон победил?&quot;
                   </button>
                   <button
                     onClick={() => setInput("Что если СССР не распался?")}
                     className="text-[10px] bg-gray-800 text-gray-400 p-2 rounded hover:bg-gray-700 text-left"
                   >
-                    "Что если СССР не распался?"
+                    &quot;Что если СССР не распался?&quot;
                   </button>
                 </div>
               </div>

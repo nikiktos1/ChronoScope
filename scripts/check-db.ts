@@ -16,7 +16,7 @@ async function checkData() {
 
     if (periods && periods.length > 0) {
         for (const p of periods) {
-            const { count, error: cError } = await supabase
+            const { count } = await supabase
                 .from("countries")
                 .select("*", { count: 'exact', head: true })
                 .eq("period_id", p.id);

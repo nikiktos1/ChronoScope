@@ -76,7 +76,7 @@ async function import1914Data() {
   ];
 
   for (const country of countriesData) {
-    const { data: countryRecord, error: countryError } = await supabase
+    const { error: countryError } = await supabase
       .from("countries")
       .upsert({
         period_id: periodId,
