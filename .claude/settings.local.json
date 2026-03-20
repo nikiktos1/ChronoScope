@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx ts-node:*)",
+      "WebSearch",
+      "Bash(node:*)",
+      "Bash(npx tsx:*)",
+      "Bash(bun run:*)"
+    ]
+  }
+}
