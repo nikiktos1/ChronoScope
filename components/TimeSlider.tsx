@@ -17,6 +17,7 @@ const periods: Period[] = [
   { year: 1880, name: 'Колониальные империи', file: '1880' },
   { year: 1900, name: 'Belle Époque', file: '1900' },
   { year: 1914, name: 'Первая мировая', file: '1914' },
+  { year: 1915, name: 'Великая война — 1915', file: '1915' },
   { year: 1920, name: 'Версальский мир', file: '1920' },
   { year: 1938, name: 'Накануне войны', file: '1938' },
   { year: 1945, name: 'Конец войны', file: '1945' },

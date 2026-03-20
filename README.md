@@ -30,39 +30,20 @@
 
 4. **Откройте в браузере:**
    - Основное приложение: [http://localhost:3000](http://localhost:3000)
-   - Демо Supabase: [http://localhost:3000/supabase-demo](http://localhost:3000/supabase-demo)
-
-## Миграция данных в Supabase
-
-Подробные инструкции см. в [MIGRATION.md](./MIGRATION.md)
-
-### Быстрая миграция:
-
-1. Получите Service Role Key из Supabase Dashboard
-2. Добавьте его в `.env.local`
-3. Запустите миграцию:
-   ```bash
-   # Тестовая миграция (3 страны из 1914 года)
-   pnpm run test-migration
-   
-   # Полная миграция всех карт
-   pnpm run migrate-maps
-   ```
+   - Подробная карта: [http://localhost:3000/enhanced-map](http://localhost:3000/enhanced-map)
 
 ## Структура проекта
 
 ```
 ├── app/                    # Next.js App Router
 ├── components/            # React компоненты
-│   ├── Map1914.tsx       # Статическая карта 1914
 │   ├── SupabaseMap.tsx   # Карта из Supabase
 │   └── TimeSlider.tsx    # Временная шкала
 ├── lib/                  # Утилиты
 │   ├── supabase.ts      # Клиент Supabase
-│   └── maps.ts          # API для работы с картами
-├── scripts/             # Скрипты миграции
-├── data/               # Статические данные
-└── public/data/        # GeoJSON файлы
+│   ├── maps.ts          # API для работы с картами
+│   └── diagnostics.ts   # Диагностика подключения
+└── DOCS/               # Документация
 ```
 
 ## API для работы с картами

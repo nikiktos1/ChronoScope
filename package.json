@@ -7,21 +7,16 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "migrate-maps": "node scripts/migrate-maps-to-supabase.js",
-    "migrate-europe": "node scripts/migrate-europe-maps.js",
-    "test-migration": "node scripts/test-migration.js",
-    "check-migration": "node scripts/check-migration-status.js"
+    "import:europe": "bun run scripts/import-europe-1492.ts"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.91.0",
-    "@turf/turf": "^7.3.1",
+    "@supabase/auth-helpers-nextjs": "^0.15.0",
+    "@supabase/ssr": "^0.8.0",
+    "@supabase/supabase-js": "^2.94.1",
     "@types/geojson": "^7946.0.16",
     "@types/leaflet": "^1.9.21",
-    "axios": "^1.13.2",
-    "dotenv": "^17.2.3",
     "leaflet": "^1.9.4",
     "next": "16.0.3",
-    "pnpm": "^10.28.2",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "react-leaflet": "^5.0.0"

@@ -4,8 +4,11 @@
       "command": "npx",
       "args": [
         "-y",
-        "mcp-remote",
-        "https://mcp.supabase.com/mcp?project_ref=olzwbjmnyyznkvkoujak"
+        "@supabase/mcp-server-supabase@latest",
+        "--access-token",
+        "sbp_40880926cf3f2345159d0cf5b2c90f0b54e1bb6d",
+        "--project-ref",
+        "olzwbjmnyyznkvkoujak"
       ],
       "disabled": false,
       "autoApprove": [
@@ -13,7 +16,8 @@
         "apply_migration",
         "get_project_url",
         "get_publishable_keys",
-        "execute_sql"
+        "execute_sql",
+        "get_advisors"
       ]
     }
   }

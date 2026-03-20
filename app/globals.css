@@ -49,6 +49,36 @@ body {
   background: #3d3d3d;
 }
 
+/* Стили для popup стран */
+.country-popup .leaflet-popup-content-wrapper {
+  background: #ffffff;
+  color: #1f2937;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.country-popup .leaflet-popup-tip {
+  background: #ffffff;
+}
+
+.country-popup .leaflet-popup-content {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.country-popup .leaflet-popup-close-button {
+  color: #6b7280;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 4px 8px;
+}
+
+.country-popup .leaflet-popup-close-button:hover {
+  color: #374151;
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
 /* Стили для тайм-слайдера */
 .slider::-webkit-slider-thumb {
   appearance: none;
