@@ -19,6 +19,10 @@
 ## Changelog
 
 ### 2026-03-24
+- Обновлена структура ## Project Deliverables: карты разделены на 5 периодов древнего мира (по 100 лет), общий вес карт 50%
+- Все deliverables переведены в статус pending
+
+### 2026-03-24
 - Инициализирован Memory Bank
 - Созданы все обязательные файлы memory_bank
 - Добавлен раздел ## Project Deliverables в projectbrief.md
@@ -34,4 +38,4 @@
 - Миграция со статического GeoJSON на Supabase базу данных
 
 ## Контроль изменений
-last_checked_commit: 7d25329984d259e69e932e8389a6ee61f777281e
+last_checked_commit: 9c38cdd0a39b9b1985c36b905de2525c1eb9f05a

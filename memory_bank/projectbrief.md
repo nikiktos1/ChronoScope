@@ -21,12 +21,14 @@ ChronoScope - интерактивный исторический атлас д�
 
 | ID | Deliverable | Status | Weight |
 |----|-------------|--------|--------|
-| MAP-01 | Интерактивная карта с Leaflet | completed | 25 |
-| MAP-02 | Временной слайдер (TimeSlider) | completed | 15 |
-| MAP-03 | Интеграция с Supabase/PostGIS | completed | 20 |
-| AUTH-01 | Аутентификация (login/register) | completed | 15 |
-| UI-01 | Enhanced Map страница | completed | 10 |
-| AI-01 | AI генератор альтернативной истории | completed | 10 |
-| GAME-01 | Duel/Game режим | completed | 5 |
+| MAP-01 | Карта: Древний мир (323-223 до н.э.) | pending | 10 |
+| MAP-02 | Карта: Древний мир (223-123 до н.э.) | pending | 10 |
+| MAP-03 | Карта: Древний мир (123-23 до н.э.) | pending | 10 |
+| MAP-04 | Карта: Древний мир (23 до н.э. - 77 н.э.) | pending | 10 |
+| MAP-05 | Карта: Древний мир (77-177 н.э.) | pending | 10 |
+| AUTH-01 | Аутентификация (login/register) | pending | 15 |
+| UI-01 | Enhanced Map страница | pending | 15 |
+| AI-01 | AI генератор альтернативной истории | pending | 10 |
+| GAME-01 | Duel/Game режим | pending | 10 |
 
 **Total Weight: 100**
