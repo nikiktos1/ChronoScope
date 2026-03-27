@@ -39,4 +39,4 @@
 - Миграция со статического GeoJSON на Supabase базу данных
 
 ## Контроль изменений
-last_checked_commit: 9c38cdd0a39b9b1985c36b905de2525c1eb9f05a
+last_checked_commit: aa0d35f
