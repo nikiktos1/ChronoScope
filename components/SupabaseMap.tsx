@@ -1,8 +1,8 @@
 "use client";
 
 import type { Feature, FeatureCollection } from "geojson";
-import type L from "leaflet";
-import { useEffect, useState } from "react";
+import L from "leaflet";
+import { useEffect, useRef, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
 import { runDiagnostics } from "@/lib/diagnostics";
 import {
@@ -11,6 +11,124 @@ import {
 	testSupabaseConnection,
 } from "@/lib/maps";
 import "leaflet/dist/leaflet.css";
+
+// Компонент для отображения названий стран
+function CountryLabels({ data }: { data: FeatureCollection }) {
+	const map = useMap();
+	const labelsRef = useRef<L.Layer[]>([]);
+
+	useEffect(() => {
+		function updateLabels() {
+			// Удаляем старые labels
+			labelsRef.current.forEach((layer) => {
+				layer.remove();
+			});
+			labelsRef.current = [];
+
+			if (!data.features) return;
+
+			data.features.forEach((feature) => {
+				if (!feature.geometry || !feature.properties) return;
+
+				const name = feature.properties.name || feature.properties.name_en;
+				if (!name) return;
+
+				const geometry = feature.geometry as {
+					type: string;
+					coordinates: unknown;
+				};
+				const coordsAny = geometry.coordinates as unknown;
+
+				let allCoords: number[][][] = [];
+
+				if (geometry.type === "Polygon") {
+					allCoords = coordsAny as number[][][];
+				} else if (geometry.type === "MultiPolygon") {
+					const multiCoords = coordsAny as number[][][][];
+					if (multiCoords) {
+						allCoords = multiCoords.filter(
+							(c) => c[0]?.[0],
+						) as unknown as number[][][];
+					}
+				}
+
+				if (allCoords.length === 0) return;
+
+				let minX = Infinity,
+					maxX = -Infinity;
+				let minY = Infinity,
+					maxY = -Infinity;
+
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				allCoords.forEach((polygon: any) => {
+					const ring = polygon[0];
+					if (!ring) return;
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					ring.forEach((coord: any) => {
+						if (coord[0] < minX) minX = coord[0];
+						if (coord[0] > maxX) maxX = coord[0];
+						if (coord[1] < minY) minY = coord[1];
+						if (coord[1] > maxY) maxY = coord[1];
+					});
+				});
+
+				if (minX === Infinity) return;
+
+				const bounds = L.latLngBounds([
+					[minY, minX],
+					[maxY, maxX],
+				]);
+
+				const center = map.latLngToContainerPoint(bounds.getCenter());
+				const size = map.latLngToContainerPoint(bounds.getNorthEast());
+				const width = Math.abs(size.x - center.x);
+				const height = Math.abs(size.y - center.y);
+
+				if (width < 30 || height < 10) return;
+
+				const svg = `
+					<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+						<text 
+							x="50%" 
+							y="50%" 
+							text-anchor="middle" 
+							dominant-baseline="middle"
+							fill="rgba(255,255,255,0.85)"
+							font-size="${Math.min((width / name.length) * 2, height * 0.45)}px"
+							font-weight="bold"
+							style="text-shadow: 1px 1px 3px rgba(0,0,0,0.9), -1px -1px 3px rgba(0,0,0,0.9); pointer-events: none;"
+						>${name}</text>
+					</svg>
+				`;
+
+				const icon = L.divIcon({
+					html: svg,
+					className: "country-label-svg",
+					iconSize: [width, height],
+					iconAnchor: [width / 2, height / 2],
+				});
+
+				const marker = L.marker(bounds.getCenter(), { icon }).addTo(map);
+				labelsRef.current.push(marker);
+			});
+		}
+
+		updateLabels();
+
+		map.on("zoomend", updateLabels);
+		map.on("moveend", updateLabels);
+
+		return () => {
+			map.off("zoomend", updateLabels);
+			map.off("moveend", updateLabels);
+			labelsRef.current.forEach((layer) => {
+				layer.remove();
+			});
+		};
+	}, [map, data]);
+
+	return null;
+}
 
 // Компонент для установки вида карты
 function SetViewOnLoad() {
@@ -253,19 +371,23 @@ export default function SupabaseMap({
 					attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 				/>
 
+				{mapData && <CountryLabels data={mapData} />}
+
 				{mapData && (
 					<>
 						{/* Сначала рендерим Римскую империю (фон) */}
 						<GeoJSON
 							key={`${currentYear}-roman-empire`}
-							data={{
-								type: "FeatureCollection",
-								features: mapData.features.filter(
-									(feature) =>
-										feature.properties?.name === "Римская империя" ||
-										feature.properties?.name_en === "Roman Empire",
-								),
-							}}
+							data={
+								{
+									type: "FeatureCollection",
+									features: mapData.features.filter(
+										(feature) =>
+											feature.properties?.name === "Римская империя" ||
+											feature.properties?.name_en === "Roman Empire",
+									),
+								} as FeatureCollection
+							}
 							style={countryStyle}
 							onEachFeature={onEachCountry}
 						/>
@@ -273,14 +395,16 @@ export default function SupabaseMap({
 						{/* Затем рендерим остальные государства (поверх) */}
 						<GeoJSON
 							key={`${currentYear}-other-countries`}
-							data={{
-								type: "FeatureCollection",
-								features: mapData.features.filter(
-									(feature) =>
-										feature.properties?.name !== "Римская империя" &&
-										feature.properties?.name_en !== "Roman Empire",
-								),
-							}}
+							data={
+								{
+									type: "FeatureCollection",
+									features: mapData.features.filter(
+										(feature) =>
+											feature.properties?.name !== "Римская империя" &&
+											feature.properties?.name_en !== "Roman Empire",
+									),
+								} as FeatureCollection
+							}
 							style={countryStyle}
 							onEachFeature={onEachCountry}
 						/>
@@ -297,7 +421,7 @@ export default function SupabaseMap({
 							opacity: 1,
 							color: "#ffffff",
 							fillOpacity: 0.5,
-							dashArray: "5, 5"
+							dashArray: "5, 5",
 						})}
 					/>
 				)}

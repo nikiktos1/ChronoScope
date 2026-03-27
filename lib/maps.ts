@@ -83,9 +83,9 @@ export async function getMapForYear(year: number) {
 		};
 	}
 
-	// Преобразуем в формат GeoJSON
-  const features: GeoJSON.Feature[] = [];
-	
+	// Преобразуем в формат GeoJSON - объединяем все геометрии каждой страны
+	const features: GeoJSON.Feature[] = [];
+
 	countries?.forEach((country) => {
 		// Проверяем наличие геометрий
 		const geometries = country.country_geometries;
@@ -94,40 +94,59 @@ export async function getMapForYear(year: number) {
 			return;
 		}
 
-		// Создаем отдельный Feature для каждой геометрии
+		// Собираем все координаты
+		const allCoords: number[][][][] = [];
+
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		geometries.forEach((geometry: any) => {
 			if (!geometry.coordinates) {
-				console.warn(`Отсутствуют координаты для геометрии страны: ${country.name}`);
+				console.warn(
+					`Отсутствуют координаты для геометрии страны: ${country.name}`,
+				);
 				return;
 			}
 
-			features.push({
-				type: "Feature",
-				properties: {
-					name: country.name,
-					name_en: country.name_en,
-					ruler: country.ruler,
-					capital: country.capital,
-					government: country.government,
-					color: country.color,
-					population: country.population,
-					area: country.area,
-					currency: country.currency,
-					religion: country.religion,
-					languages: country.languages,
-					ABBREVN: country.abbrevn,
-					SUBJECTO: country.subjecto,
-					BORDERPRECISION: country.border_precision,
-					PARTOF: country.part_of,
-					part_of: country.part_of,
-				},
-				geometry: {
-					type: geometry.geometry_type as "Point" | "MultiPoint" | "LineString" | "MultiLineString" | "Polygon" | "MultiPolygon",
-					coordinates: geometry.coordinates,
-				},
-			});
+			const coords = geometry.coordinates;
+			if (geometry.geometry_type === "Polygon") {
+				allCoords.push(coords);
+			} else if (geometry.geometry_type === "MultiPolygon") {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				coords.forEach((poly: any) => {
+					allCoords.push(poly);
+				});
+			}
 		});
+
+		if (allCoords.length === 0) return;
+
+		// Определяем тип геометрии
+		const geometryType = allCoords.length === 1 ? "Polygon" : "MultiPolygon";
+
+		features.push({
+			type: "Feature",
+			properties: {
+				name: country.name,
+				name_en: country.name_en,
+				ruler: country.ruler,
+				capital: country.capital,
+				government: country.government,
+				color: country.color,
+				population: country.population,
+				area: country.area,
+				currency: country.currency,
+				religion: country.religion,
+				languages: country.languages,
+				ABBREVN: country.abbrevn,
+				SUBJECTO: country.subjecto,
+				BORDERPRECISION: country.border_precision,
+				PARTOF: country.part_of,
+				part_of: country.part_of,
+			},
+			geometry: {
+				type: geometryType as "Polygon" | "MultiPolygon",
+				coordinates: geometryType === "Polygon" ? allCoords[0] : allCoords,
+			},
+		} as unknown as GeoJSON.Feature);
 	});
 
 	return {
