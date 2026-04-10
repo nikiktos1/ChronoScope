@@ -20,7 +20,7 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 			});
 			labelsRef.current = [];
 
-			if (!data?.features) return;
+			if (!data?.features || data.features.length === 0) return;
 
 			data.features.forEach((feature) => {
 				if (!feature?.geometry || !feature?.properties) return;
