@@ -156,6 +156,11 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				const width = Math.abs(southEast.x - northWest.x);
 				const height = Math.abs(southEast.y - northWest.y);
 
+				// Определение отношения сторон для определения вытянутости территории
+				const aspectRatio = width > height ? width / height : height / width;
+				const isElongated = aspectRatio > 2.5; // Если отношение сторон > 2.5, то территория считается вытянутой
+				const orientation = width > height ? 'horizontal' : 'vertical'; // Определяем ориентацию
+
 				// Нормализуем размер шрифта в зависимости от площади территории
 				const minAreaThreshold = 0.1; // минимальная пороговая площадь
 				let sizeFactor = 1.0;
@@ -164,7 +169,7 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 					// Применяем логарифмическую шкалу для более естественного масштабирования
 					sizeFactor = Math.log(totalArea + 1) / Math.log(minAreaThreshold + 1);
 					// Ограничиваем фактор масштабирования разумными пределами
-					sizeFactor = Math.max(0.3, Math.min(3.0, sizeFactor));
+					sizeFactor = Math.max(0.2, Math.min(1.5, sizeFactor)); // Уменьшаем максимальный фактор
 				}
 
 				// Уменьшаем минимальные требования для отображения названий стран
@@ -188,14 +193,21 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				}
 
 				// Расчет размера шрифта с учетом размера территории
-				const baseFontSize = 12 * sizeFactor; // Базовый размер шрифта с учетом фактора размера территории
-				const minFontSize = Math.max(6, 8 * sizeFactor); // Минимальный размер шрифта с учетом размера территории
-				const maxFontSize = Math.min(height * 0.8, 32); // Увеличиваем максимальный размер
+				const baseFontSize = 10 * sizeFactor; // Уменьшаем базовый размер шрифта
+				const minFontSize = Math.max(5, 6 * sizeFactor); // Уменьшаем минимальный размер шрифта
+				const maxFontSize = Math.min(height * 0.6, 24); // Уменьшаем максимальный размер
 				const fontSize = Math.max(minFontSize, Math.min(baseFontSize, maxFontSize));
 
 				// Увеличиваем размер SVG-контейнера, чтобы избежать обрезания текста
-				const paddedWidth = Math.max(width * 1.4, fontSize * displayName.length * 0.9); // Увеличиваем и учитываем длину текста
-				const paddedHeight = Math.max(height * 1.4, fontSize * 1.5); // Увеличиваем и учитываем размер шрифта
+				const paddedWidth = Math.max(width * 1.2, fontSize * displayName.length * 0.8); // Уменьшаем увеличение
+				const paddedHeight = Math.max(height * 1.2, fontSize * 1.3); // Уменьшаем увеличение
+
+				// Определяем угол поворота для вытянутых территорий
+				let rotationAngle = 0;
+				if (isElongated) {
+					// Поворачиваем текст в зависимости от ориентации территории
+					rotationAngle = orientation === 'horizontal' ? 0 : -90; // Горизонтальная - без поворота, вертикальная - на -90 градусов
+				}
 
 				const svg = `
 					<svg width="${paddedWidth}" height="${paddedHeight}" xmlns="http://www.w3.org/2000/svg">
@@ -204,6 +216,7 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 							y="50%" 
 							text-anchor="middle" 
 							dominant-baseline="middle"
+							transform="rotate(${rotationAngle} 50% 50%)"
 							fill="rgba(255,255,255,0.95)"
 							font-size="${fontSize}px"
 							font-weight="bold"
