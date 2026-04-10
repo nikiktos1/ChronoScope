@@ -49,6 +49,25 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 
 				if (allCoords.length === 0) return;
 
+				// Функция для вычисления приблизительной площади полигона
+				const getPolygonArea = (polygon: number[][][]): number => {
+					if (!polygon || polygon.length === 0) return 0;
+					
+					const ring = polygon[0]; // Внешнее кольцо полигона
+					if (!ring || ring.length < 3) return 0;
+					
+					// Используем формулу площади многоугольника (формула трапеций или шнуровая формула)
+					let area = 0;
+					for (let i = 0; i < ring.length - 1; i++) {
+						area += ring[i][0] * ring[i + 1][1];  // x_i * y_{i+1}
+						area -= ring[i][1] * ring[i + 1][0];  // y_i * x_{i+1}
+					}
+					area += ring[ring.length - 1][0] * ring[0][1];  // x_{n-1} * y_0
+					area -= ring[ring.length - 1][1] * ring[0][0];  // y_{n-1} * x_0
+					
+					return Math.abs(area) / 2;
+				};
+
 				// Функция для вычисления центра полигона методом средней точки
 				const getPolygonCentroid = (polygon: number[][][]): [number, number] | null => {
 					if (!polygon || polygon.length === 0) return null;
@@ -69,37 +88,31 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 					return [ySum / count, xSum / count]; // [широта, долгота]
 				};
 
-				// Для MultiPolygon вычисляем центр первого полигона или усредняем
+				// Для MultiPolygon вычисляем суммарную площадь и центр
 				let centroid: [number, number] | null = null;
+				let totalArea = 0;
 				
 				if (geometry.type === "Polygon" && allCoords.length > 0) {
+					totalArea = getPolygonArea(allCoords[0]);
 					centroid = getPolygonCentroid(allCoords[0]);
 				} else if (geometry.type === "MultiPolygon" && allCoords.length > 0) {
-					if (allCoords.length === 1) {
-						centroid = getPolygonCentroid(allCoords[0]);
-					} else {
-						// Для нескольких полигонов находим самый большой (по ограничивающему прямоугольнику)
-						let largestArea = 0;
-						for (const poly of allCoords) {
-							const ring = poly[0];
-							if (!ring || ring.length < 2) continue;
-							
-							let minX = Infinity, maxX = -Infinity;
-							let minY = Infinity, maxY = -Infinity;
-							
-							for (const coord of ring) {
-								if (coord[0] < minX) minX = coord[0];
-								if (coord[0] > maxX) maxX = coord[0];
-								if (coord[1] < minY) minY = coord[1];
-								if (coord[1] > maxY) maxY = coord[1];
-							}
-							
-							const area = (maxX - minX) * (maxY - minY);
-							if (area > largestArea) {
-								largestArea = area;
-								centroid = getPolygonCentroid([ring]);
-							}
+					let weightedX = 0, weightedY = 0;
+					for (const poly of allCoords) {
+						const area = getPolygonArea([poly[0]]); // только внешнее кольцо
+						totalArea += area;
+						
+						const polyCentroid = getPolygonCentroid([poly[0]]);
+						if (polyCentroid && area > 0) {
+							weightedX += polyCentroid[0] * area;
+							weightedY += polyCentroid[1] * area;
 						}
+					}
+					
+					if (totalArea > 0) {
+						centroid = [weightedX / totalArea, weightedY / totalArea];
+					} else {
+						// Если вычисление площади не работает, используем центр первого полигона
+						centroid = getPolygonCentroid(allCoords[0]);
 					}
 				}
 
@@ -125,26 +138,34 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 
 					if (minX === Infinity) return;
 
-					const bounds = L.latLngBounds([
-						[minY, minX],
-						[maxY, maxX],
-					]);
-
 					// Рассчитываем геометрический центр полигона более точно
 					centroid = [minY + (maxY - minY) / 2, minX + (maxX - minX) / 2];
 				}
 
 				if (!centroid) return;
 				
+				// Создаем bounds на основе реального размера территории
 				const bounds = L.latLngBounds([
-					[centroid[0] - 1, centroid[1] - 1], // примерные границы вокруг центроида
-					[centroid[0] + 1, centroid[1] + 1],
+					[centroid[0] - 2, centroid[1] - 2], // базовые границы
+					[centroid[0] + 2, centroid[1] + 2],
 				]);
 
-				const center = map.latLngToContainerPoint(L.latLng(centroid[0], centroid[1]));
-				const size = map.latLngToContainerPoint(bounds.getNorthEast());
-				const width = Math.abs(size.x - center.x) * 2; // Удваиваем ширину для полного размера
-				const height = Math.abs(size.y - center.y) * 2; // Удваиваем высоту для полного размера
+				// Преобразуем географические координаты в пиксельные для определения размера территории на карте
+				const northWest = map.latLngToContainerPoint(bounds.getNorthWest());
+				const southEast = map.latLngToContainerPoint(bounds.getSouthEast());
+				const width = Math.abs(southEast.x - northWest.x);
+				const height = Math.abs(southEast.y - northWest.y);
+
+				// Нормализуем размер шрифта в зависимости от площади территории
+				const minAreaThreshold = 0.1; // минимальная пороговая площадь
+				let sizeFactor = 1.0;
+				
+				if (totalArea > 0) {
+					// Применяем логарифмическую шкалу для более естественного масштабирования
+					sizeFactor = Math.log(totalArea + 1) / Math.log(minAreaThreshold + 1);
+					// Ограничиваем фактор масштабирования разумными пределами
+					sizeFactor = Math.max(0.3, Math.min(3.0, sizeFactor));
+				}
 
 				// Уменьшаем минимальные требования для отображения названий стран
 				const zoom = map.getZoom();
@@ -166,14 +187,15 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				  }
 				}
 
-				// Расчет размера шрифта
-				const minFontSize = 8; // Увеличиваем минимальный размер шрифта
-				const maxFontSize = Math.min(height * 0.8, 28); // Увеличиваем максимальный размер шрифта
-				const fontSize = Math.max(minFontSize, Math.min((width / Math.max(displayName.length, 3)) * 3.0, maxFontSize));
+				// Расчет размера шрифта с учетом размера территории
+				const baseFontSize = 12 * sizeFactor; // Базовый размер шрифта с учетом фактора размера территории
+				const minFontSize = Math.max(6, 8 * sizeFactor); // Минимальный размер шрифта с учетом размера территории
+				const maxFontSize = Math.min(height * 0.8, 32); // Увеличиваем максимальный размер
+				const fontSize = Math.max(minFontSize, Math.min(baseFontSize, maxFontSize));
 
 				// Увеличиваем размер SVG-контейнера, чтобы избежать обрезания текста
-				const paddedWidth = Math.max(width * 1.4, fontSize * displayName.length * 0.8); // Увеличиваем на 40% и учитываем длину текста
-				const paddedHeight = Math.max(height * 1.4, fontSize * 1.4); // Увеличиваем на 40% и учитываем размер шрифта
+				const paddedWidth = Math.max(width * 1.4, fontSize * displayName.length * 0.9); // Увеличиваем и учитываем длину текста
+				const paddedHeight = Math.max(height * 1.4, fontSize * 1.5); // Увеличиваем и учитываем размер шрифта
 
 				const svg = `
 					<svg width="${paddedWidth}" height="${paddedHeight}" xmlns="http://www.w3.org/2000/svg">
