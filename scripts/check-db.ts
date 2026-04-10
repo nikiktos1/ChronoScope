@@ -1,28 +1,28 @@
-import { supabase } from "./lib/supabase";
+import { createClient } from '@supabase/supabase-js';
 
-async function checkData() {
-    console.log("Checking Supabase data...");
+const supabaseUrl = "https://olzwbjmnyyznkvkoujak.supabase.co";
+const supabaseKey = "sb_publishable_j9gZ_YhTwh2nMY3c5Rinjg_oXroiQu_";
 
-    const { data: periods, error: pError } = await supabase
-        .from("historical_periods")
-        .select("*");
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-    if (pError) {
-        console.error("Error fetching periods:", pError);
-        return;
-    }
-
-    console.log("Available periods:", periods);
-
-    if (periods && periods.length > 0) {
-        for (const p of periods) {
-            const { count } = await supabase
-                .from("countries")
-                .select("*", { count: 'exact', head: true })
-                .eq("period_id", p.id);
-            console.log(`Period ${p.year} (ID: ${p.id}): ${count} countries`);
-        }
+async function checkRLS() {
+    console.log("Checking RLS policies and table structure...\n");
+    
+    // Get tables
+    const { data: tables, error: tablesError } = await supabase.rpc('get_tables');
+    console.log("Tables:", tablesError ? null : tables);
+    
+    // Check RLS status on key tables
+    const tablesToCheck = ['historical_periods', 'countries', 'country_geometries'];
+    
+    for (const table of tablesToCheck) {
+        const { error } = await supabase
+            .from(table)
+            .select('*')
+            .limit(1);
+        
+        console.log(`${table}: ${error ? 'BLOCKED' : 'ACCESS OK'} - ${error?.message || ''}`);
     }
 }
 
-checkData();
+checkRLS();

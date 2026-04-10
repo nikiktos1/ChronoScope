@@ -1,4 +1,21 @@
-import { supabase } from "./supabase";
+import { publicSupabase } from "./public-supabase";
+
+function formatError(error: unknown) {
+	if (!error) return null;
+
+	if (error instanceof Error) {
+		return {
+			message: error.message,
+			name: error.name,
+		};
+	}
+
+	if (typeof error === "object") {
+		return JSON.parse(JSON.stringify(error));
+	}
+
+	return { message: String(error) };
+}
 
 export async function runDiagnostics() {
 	console.log("=== ДИАГНОСТИКА SUPABASE ===");
@@ -17,13 +34,13 @@ export async function runDiagnostics() {
 	// Проверяем подключение
 	console.log("2. Тестирование подключения...");
 	try {
-		const { data, error } = await supabase
+		const { data, error } = await publicSupabase
 			.from("historical_periods")
 			.select("id, year")
 			.limit(1);
 
 		if (error) {
-			console.error("   Ошибка подключения:", error);
+			console.error("   Ошибка подключения:", formatError(error));
 			return false;
 		}
 
@@ -36,13 +53,13 @@ export async function runDiagnostics() {
 	// Проверяем доступные периоды
 	console.log("3. Проверка доступных периодов...");
 	try {
-		const { data: periods, error } = await supabase
+		const { data: periods, error } = await publicSupabase
 			.from("historical_periods")
 			.select("year")
 			.order("year");
 
 		if (error) {
-			console.error("   Ошибка получения периодов:", error);
+			console.error("   Ошибка получения периодов:", formatError(error));
 			return false;
 		}
 
@@ -58,28 +75,28 @@ export async function runDiagnostics() {
 	// Проверяем конкретный год (1914)
 	console.log("4. Проверка данных для 1914 года...");
 	try {
-		const { data: period, error: periodError } = await supabase
+		const { data: period, error: periodError } = await publicSupabase
 			.from("historical_periods")
 			.select("id")
 			.eq("year", 1914)
-			.single();
+			.maybeSingle();
 
 		if (periodError || !period) {
-			console.error("   Период 1914 не найден:", periodError);
+			console.error("   Период 1914 не найден:", formatError(periodError));
 			return false;
 		}
 
 		console.log("   Период 1914 найден, ID:", period.id);
 
 		// Проверяем страны для этого периода
-		const { data: countries, error: countriesError } = await supabase
+		const { data: countries, error: countriesError } = await publicSupabase
 			.from("countries")
 			.select("id, name")
 			.eq("period_id", period.id)
 			.limit(5);
 
 		if (countriesError) {
-			console.error("   Ошибка получения стран:", countriesError);
+			console.error("   Ошибка получения стран:", formatError(countriesError));
 			return false;
 		}
 

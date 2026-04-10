@@ -4,12 +4,7 @@ import type { Feature, FeatureCollection } from "geojson";
 import L from "leaflet";
 import { useEffect, useRef, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
-import { runDiagnostics } from "@/lib/diagnostics";
-import {
-	getAvailableYears,
-	getMapForYear,
-	testSupabaseConnection,
-} from "@/lib/maps";
+import { getMapForYear } from "@/lib/maps";
 import "leaflet/dist/leaflet.css";
 
 // Компонент для отображения названий стран
@@ -148,12 +143,11 @@ interface SupabaseMapProps {
 }
 
 export default function SupabaseMap({
-	initialYear = 1914,
+	initialYear = 1915,
 	className = "",
 	alternativeData = null,
 }: SupabaseMapProps) {
 	const [mapData, setMapData] = useState<FeatureCollection | null>(null);
-	const [, setAvailableYears] = useState<number[]>([]);
 	const [currentYear, setCurrentYear] = useState(initialYear);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -162,31 +156,6 @@ export default function SupabaseMap({
 	useEffect(() => {
 		setCurrentYear(initialYear);
 	}, [initialYear]);
-
-	// Загрузка доступных лет
-	useEffect(() => {
-		async function loadYears() {
-			try {
-				// Запускаем диагностику для отладки
-				console.log("Запуск диагностики Supabase...");
-				await runDiagnostics();
-
-				// Сначала проверяем подключение
-				const isConnected = await testSupabaseConnection();
-				if (!isConnected) {
-					setError("Не удалось подключиться к базе данных");
-					return;
-				}
-
-				const years = await getAvailableYears();
-				setAvailableYears(years);
-			} catch (err) {
-				console.error("Ошибка загрузки лет:", err);
-				setError("Не удалось загрузить список лет");
-			}
-		}
-		loadYears();
-	}, []);
 
 	// Загрузка карты для текущего года
 	useEffect(() => {
@@ -260,6 +229,17 @@ export default function SupabaseMap({
 		return `${thousands.toFixed(1)} тыс. км²`;
 	};
 
+	const shouldShowPartOf = (
+		government: string | undefined,
+		partOf: string | undefined,
+		countryName: string,
+	) => {
+		if (!partOf || partOf === countryName) return false;
+
+		const governmentText = (government || "").toLowerCase();
+		return /(марионет|протекторат|оккуп|в изгнании|клиент)/.test(governmentText);
+	};
+
 	// Обработчик клика по стране с расширенной информацией
 	const onEachCountry = (feature: Feature, layer: L.Layer) => {
 		if (feature.properties) {
@@ -281,6 +261,8 @@ export default function SupabaseMap({
 			const countryName = name || name_en || "Неизвестная территория";
 			const formattedPopulation = formatPopulation(population);
 			const formattedArea = formatArea(area);
+			const parentState = part_of || PARTOF;
+			const showPartOf = shouldShowPartOf(government, parentState, countryName);
 
 			// Popup с расширенной информацией
 			const popupContent = `
@@ -295,7 +277,7 @@ export default function SupabaseMap({
             ${currency ? `<p class="text-sm"><strong>Валюта:</strong> ${currency}</p>` : ""}
             ${religion ? `<p class="text-sm"><strong>Религия:</strong> ${religion}</p>` : ""}
             ${languages ? `<p class="text-sm"><strong>Языки:</strong> ${languages}</p>` : ""}
-            ${(part_of || PARTOF) && (part_of || PARTOF) !== countryName ? `<p class="text-sm"><strong>Часть:</strong> ${part_of || PARTOF}</p>` : ""}
+            ${showPartOf ? `<p class="text-sm"><strong>Часть:</strong> ${parentState}</p>` : ""}
           </div>
           <p class="text-xs text-gray-500 mt-3 pt-2 border-t border-gray-200">
             ${currentYear > 0 ? `${currentYear} год н.э.` : `${Math.abs(currentYear)} до н.э.`}

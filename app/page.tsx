@@ -17,7 +17,7 @@ const SupabaseMapComponent = dynamic(() => import('@/components/SupabaseMap'), {
 });
 
 export default function Home() {
-  const [currentYear, setCurrentYear] = useState(1914);
+  const [currentYear, setCurrentYear] = useState(1915);
   const [altHistoryEssay, setAltHistoryEssay] = useState<string | null>(null);
   const [altMapData, setAltMapData] = useState<GeoJSON.FeatureCollection | null>(null);
 
@@ -42,7 +42,7 @@ export default function Home() {
             href="/enhanced-map"
             className="inline-flex items-center text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
           >
-            📊 Подробная карта 1914 года
+            📊 Подробная карта 1915 года
             <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>

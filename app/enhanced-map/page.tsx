@@ -14,7 +14,7 @@ const SupabaseMap = dynamic(() => import('@/components/SupabaseMap'), {
 });
 
 export default function EnhancedMapPage() {
-  const [selectedYear, setSelectedYear] = useState(1914);
+  const [selectedYear, setSelectedYear] = useState(1915);
 
   return (
     <div className="h-screen flex flex-col bg-gray-900">
@@ -40,7 +40,7 @@ export default function EnhancedMapPage() {
               className="bg-gray-700 text-white px-3 py-2 rounded-md border border-gray-600 focus:border-blue-500 focus:outline-none"
             >
               <option value={1914}>1914 н.э.</option>
-              {/* Можно добавить другие годы когда они будут доступны */}
+              <option value={1915}>1915 н.э.</option>
             </select>
           </div>
         </div>

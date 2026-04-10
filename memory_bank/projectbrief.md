@@ -1,67 +1,35 @@
 # Project Brief
 
 ## Overview
-ChronoScope - интерактивный исторический атлас для визуализации карт с 323 г. до н.э. по 2000 год.
+ChronoScope is an interactive historical atlas focused on exploring political borders, timelines, and contextual historical information from antiquity to the modern era.
 
 ## Goals
-- Создание веб-приложения для визуализации исторических границ государств
-- Поддержка временного диапазона от 323 г. до н.э. до 2000 года
-- Интеграция с Supabase (PostgreSQL + PostGIS) для хранения геоданных
-- Аутентификация пользователей
-- Интерактивные функции (таймлайн, AI генерация альтернативной истории)
+- Provide an interactive historical map UI backed by Supabase and PostGIS.
+- Let users move between supported historical years with a timeline-driven experience.
+- Support user authentication for personalized features.
+- Add exploratory modes such as detailed country inspection, alternate history generation, and quiz gameplay.
 
 ## Scope
-- Frontend: Next.js 16, React 19, TypeScript
-- База данных: Supabase (PostgreSQL + PostGIS)
-- Карты: Leaflet, React-Leaflet
-- Стили: Tailwind CSS v4
-- Пакетный менеджер: pnpm
+- Frontend: Next.js 16, React 19, TypeScript.
+- Data layer: Supabase, PostgreSQL, PostGIS.
+- Maps: Leaflet and React-Leaflet.
+- Styling: Tailwind CSS v4.
+- Runtime and scripts: bun is the preferred package manager by project rule, while the current repository also contains pnpm metadata.
 
 ## Project Deliverables
 
 | ID | Deliverable | Status | Weight |
 |----|-------------|--------|--------|
-| MAP-01 | Карта: Древний мир (323-223 до н.э.) | pending | 2 |
-| MAP-02 | Карта: Древний мир (223-123 до н.э.) | pending | 2 |
-| MAP-03 | Карта: Древний мир (123-23 до н.э.) | pending | 2 |
-| MAP-04 | Карта: Древний мир (23 до н.э. - 77 н.э.) | pending | 2 |
-| MAP-05 | Карта: Древний мир (77-177 н.э.) | pending | 2 |
-| MAP-06 | Карта: Раннее средневековье (177-327 г.) | pending | 1.2121212121212122 |
-| MAP-07 | Карта: Раннее средневековье (327-477 г.) | pending | 1.2121212121212122 |
-| MAP-08 | Карта: Раннее средневековье (477-527 г.) | pending | 1.2121212121212122 |
-| MAP-09 | Карта: Раннее средневековье (527-577 г.) | pending | 1.2121212121212122 |
-| MAP-10 | Карта: Раннее средневековье (577-627 г.) | pending | 1.2121212121212122 |
-| MAP-11 | Карта: Раннее средневековье (627-677 г.) | pending | 1.2121212121212122 |
-| MAP-12 | Карта: Раннее средневековье (677-727 г.) | pending | 1.2121212121212122 |
-| MAP-13 | Карта: Раннее средневековье (727-777 г.) | pending | 1.2121212121212122 |
-| MAP-14 | Карта: Раннее средневековье (777-827 г.) | pending | 1.2121212121212122 |
-| MAP-15 | Карта: Раннее средневековье (827-877 г.) | pending | 1.2121212121212122 |
-| MAP-16 | Карта: Раннее средневековье (877-927 г.) | pending | 1.2121212121212122 |
-| MAP-17 | Карта: Раннее средневековье (927-977 г.) | pending | 1.2121212121212122 |
-| MAP-18 | Карта: Раннее средневековье (977-1027 г.) | pending | 1.2121212121212122 |
-| MAP-19 | Карта: Позднее средневековье (1027-1077 г.) | pending | 1.2121212121212122 |
-| MAP-20 | Карта: Позднее средневековье (1077-1127 г.) | pending | 1.2121212121212122 |
-| MAP-21 | Карта: Позднее средневековье (1127-1177 г.) | pending | 1.2121212121212122 |
-| MAP-22 | Карта: Позднее средневековье (1177-1227 г.) | pending | 1.2121212121212122 |
-| MAP-23 | Карта: Позднее средневековье (1227-1277 г.) | pending | 1.2121212121212122 |
-| MAP-24 | Карта: Позднее средневековье (1277-1327 г.) | pending | 1.2121212121212122 |
-| MAP-25 | Карта: Позднее средневековье (1327-1377 г.) | pending | 1.2121212121212122 |
-| MAP-26 | Карта: Позднее средневековье (1377-1427 г.) | pending | 1.2121212121212122 |
-| MAP-27 | Карта: Новое время (1427-1477 г.) | pending | 1.2121212121212122 |
-| MAP-28 | Карта: Новое время (1477-1527 г.) | pending | 1.2121212121212122 |
-| MAP-29 | Карта: Новое время (1527-1577 г.) | pending | 1.2121212121212122 |
-| MAP-30 | Карта: Новое время (1577-1627 г.) | pending | 1.2121212121212122 |
-| MAP-31 | Карта: Новое время (1627-1677 г.) | pending | 1.2121212121212122 |
-| MAP-32 | Карта: Новое время (1677-1727 г.) | pending | 1.2121212121212122 |
-| MAP-33 | Карта: Новое время (1727-1777 г.) | pending | 1.2121212121212122 |
-| MAP-34 | Карта: Современность (1777-1827 г.) | pending | 1.2121212121212122 |
-| MAP-35 | Карта: Современность (1827-1877 г.) | pending | 1.2121212121212122 |
-| MAP-36 | Карта: Современность (1877-1927 г.) | pending | 1.2121212121212122 |
-| MAP-37 | Карта: Современность (1927-1977 г.) | pending | 1.2121212121212122 |
-| MAP-38 | Карта: Современность (1977-2000 г.) | pending | 1.2121212121212122 |
-| AUTH-01 | Аутентификация (login/register) | pending | 12.5 |
-| UI-01 | Enhanced Map страница | pending | 12.5 |
-| AI-01 | AI генератор альтернативной истории | pending | 12.5 |
-| GAME-01 | Duel/Game режим | pending | 12.5 |
+| PR-01 | Core interactive map experience with Supabase-backed borders | completed | 24 |
+| PR-02 | Timeline navigation across supported historical years | completed | 12 |
+| PR-03 | Detailed country view and enhanced map route | completed | 12 |
+| PR-04 | User authentication flows for login and registration | completed | 14 |
+| PR-05 | Alternate history generation flow via AI API | completed | 12 |
+| PR-06 | Historical duel gameplay mode with score persistence | completed | 10 |
+| PR-07 | Historical dataset coverage across target product periods | in_progress | 8 |
+| PR-08 | Search, event cards, and richer historical metadata UX | pending | 4 |
+| PR-09 | User profile, favorites, and saved history features | pending | 2 |
+| PR-10 | Deployment, CI/CD, and production monitoring setup | pending | 2 |
 
-**Total Weight: 100**
+## Validation
+Deliverables weight self-check: 24 + 12 + 12 + 14 + 12 + 10 + 8 + 4 + 2 + 2 = 100.

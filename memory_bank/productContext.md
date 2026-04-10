@@ -1,23 +1,28 @@
 # Product Context
 
-## Зачем нужен проект
-ChronoScope позволяет пользователям исследовать исторические границы государств Европы и мира на интерактивной карте. Проект решает проблему визуализации исторических данных в удобном веб-формате.
+## Why This Project Exists
+ChronoScope is intended to turn historical map exploration into an interactive, searchable, and visually approachable web experience. It replaces static atlas browsing with a navigable timeline, rich map overlays, and product features that encourage repeated exploration.
 
-## Проблемы пользователей
-1. Сложность восприятия исторических карт в статичном виде
-2. Отсутствие интерактивности при изучении истории
-3. Невозможность увидеть изменения границ во времени
-4. Отсутствие персонализации и игровых элементов
+## User Problems
+- Static historical maps are hard to compare across time.
+- Many users need a quicker way to inspect borders, states, and geopolitical changes for a specific year.
+- General history products rarely combine map exploration with gameplay and speculative history tools.
+- Historical datasets are fragmented, so the product needs a coherent UI over a structured spatial database.
 
-## Целевая аудитория
-- Любители истории
-- Студенты и преподаватели
-- Исследователи
-- Все, кто интересуется историей
+## Target Users
+- History enthusiasts.
+- Students and teachers.
+- Researchers and hobbyists working with geopolitical history.
+- Users interested in historical comparison and alternate-history scenarios.
 
-## Функциональность
-- Интерактивная карта с историческими границами
-- Таймлайн для выбора года
-- Аутентификация пользователей
-- AI генератор альтернативной истории
-- Игровой режим (Duel)
+## Current Product Surface
+- Main interactive map at `/`.
+- Enhanced map page at `/enhanced-map` with detailed country inspection.
+- Auth routes at `/auth/login`, `/auth/register`, and a legacy `/login` route.
+- Duel mode at `/duel`.
+- Alternate history generation through `/api/generate-history` and `components/AIHistoryGenerator.tsx`.
+
+## Current Gaps
+- Complete historical coverage across the intended time range is not yet confirmed in code and data.
+- Search and event-card UX described in product docs are not yet surfaced as dedicated user-facing flows.
+- Persistent user personalization beyond auth and duel score handling remains incomplete.
