@@ -161,15 +161,19 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				const isElongated = aspectRatio > 2.5; // Если отношение сторон > 2.5, то территория считается вытянутой
 				const orientation = width > height ? 'horizontal' : 'vertical'; // Определяем ориентацию
 
-				// Нормализуем размер шрифта в зависимости от площади территории
-				const minAreaThreshold = 0.1; // минимальная пороговая площадь
+				// Нормализуем размер шрифта в зависимости от площади территории с учётом сбалансированного масштабирования
+				const referenceArea = 200; // эталонная площадь (условная) для масштабирования
+				const minAcceptableSize = 0.5; // минимальный размер относительно эталонного
+				const maxAcceptableSize = 2.0; // максимальный размер относительно эталонного
+				
 				let sizeFactor = 1.0;
 				
 				if (totalArea > 0) {
-					// Применяем логарифмическую шкалу для более естественного масштабирования
-					sizeFactor = Math.log(totalArea + 1) / Math.log(minAreaThreshold + 1);
+					// Используем степенную функцию для более сбалансированного масштабирования
+					// Это уменьшает разницу между размерами текста для больших и маленьких стран
+					sizeFactor = Math.pow(totalArea / referenceArea, 0.3);
 					// Ограничиваем фактор масштабирования разумными пределами
-					sizeFactor = Math.max(0.2, Math.min(1.5, sizeFactor)); // Уменьшаем максимальный фактор
+					sizeFactor = Math.max(minAcceptableSize, Math.min(maxAcceptableSize, sizeFactor));
 				}
 
 				// Уменьшаем минимальные требования для отображения названий стран
