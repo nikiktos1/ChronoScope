@@ -49,32 +49,99 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 
 				if (allCoords.length === 0) return;
 
-				let minX = Infinity,
-					maxX = -Infinity;
-				let minY = Infinity,
-					maxY = -Infinity;
+				// Функция для вычисления центра полигона методом средней точки
+				const getPolygonCentroid = (polygon: number[][][]): [number, number] | null => {
+					if (!polygon || polygon.length === 0) return null;
+					
+					const ring = polygon[0]; // Внешнее кольцо полигона
+					if (!ring || ring.length === 0) return null;
+					
+					let xSum = 0, ySum = 0, count = 0;
+					for (const coord of ring) {
+						if (coord && coord.length >= 2) {
+							xSum += coord[0]; // долгота
+							ySum += coord[1]; // широта
+							count++;
+						}
+					}
+					
+					if (count === 0) return null;
+					return [ySum / count, xSum / count]; // [широта, долгота]
+				};
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				allCoords.forEach((polygon: any) => {
-					const ring = polygon[0];
-					if (!ring) return;
+				// Для MultiPolygon вычисляем центр первого полигона или усредняем
+				let centroid: [number, number] | null = null;
+				
+				if (geometry.type === "Polygon" && allCoords.length > 0) {
+					centroid = getPolygonCentroid(allCoords[0]);
+				} else if (geometry.type === "MultiPolygon" && allCoords.length > 0) {
+					if (allCoords.length === 1) {
+						centroid = getPolygonCentroid(allCoords[0]);
+					} else {
+						// Для нескольких полигонов находим самый большой (по ограничивающему прямоугольнику)
+						let largestArea = 0;
+						for (const poly of allCoords) {
+							const ring = poly[0];
+							if (!ring || ring.length < 2) continue;
+							
+							let minX = Infinity, maxX = -Infinity;
+							let minY = Infinity, maxY = -Infinity;
+							
+							for (const coord of ring) {
+								if (coord[0] < minX) minX = coord[0];
+								if (coord[0] > maxX) maxX = coord[0];
+								if (coord[1] < minY) minY = coord[1];
+								if (coord[1] > maxY) maxY = coord[1];
+							}
+							
+							const area = (maxX - minX) * (maxY - minY);
+							if (area > largestArea) {
+								largestArea = area;
+								centroid = getPolygonCentroid([ring]);
+							}
+						}
+					}
+				}
+
+				// Если не удалось вычислить центр, пробуем расчет по bounding box
+				if (!centroid) {
+					let minX = Infinity,
+						maxX = -Infinity;
+					let minY = Infinity,
+						maxY = -Infinity;
+
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					ring.forEach((coord: any) => {
-						if (coord[0] < minX) minX = coord[0];
-						if (coord[0] > maxX) maxX = coord[0];
-						if (coord[1] < minY) minY = coord[1];
-						if (coord[1] > maxY) maxY = coord[1];
+					allCoords.forEach((polygon: any) => {
+						const ring = polygon[0];
+						if (!ring) return;
+						// eslint-disable-next-line @typescript-eslint/no-explicit-any
+						ring.forEach((coord: any) => {
+							if (coord[0] < minX) minX = coord[0];
+							if (coord[0] > maxX) maxX = coord[0];
+							if (coord[1] < minY) minY = coord[1];
+							if (coord[1] > maxY) maxY = coord[1];
+						});
 					});
-				});
 
-				if (minX === Infinity) return;
+					if (minX === Infinity) return;
 
+					const bounds = L.latLngBounds([
+						[minY, minX],
+						[maxY, maxX],
+					]);
+
+					// Рассчитываем геометрический центр полигона более точно
+					centroid = [minY + (maxY - minY) / 2, minX + (maxX - minX) / 2];
+				}
+
+				if (!centroid) return;
+				
 				const bounds = L.latLngBounds([
-					[minY, minX],
-					[maxY, maxX],
+					[centroid[0] - 1, centroid[1] - 1], // примерные границы вокруг центроида
+					[centroid[0] + 1, centroid[1] + 1],
 				]);
 
-				const center = map.latLngToContainerPoint(bounds.getCenter());
+				const center = map.latLngToContainerPoint(L.latLng(centroid[0], centroid[1]));
 				const size = map.latLngToContainerPoint(bounds.getNorthEast());
 				const width = Math.abs(size.x - center.x) * 2; // Удваиваем ширину для полного размера
 				const height = Math.abs(size.y - center.y) * 2; // Удваиваем высоту для полного размера
