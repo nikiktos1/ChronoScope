@@ -441,7 +441,7 @@ export async function getMapForYear(year: number) {
 		.maybeSingle();
 
 	if (periodError || !period) {
-		console.error("Период не найден:", {
+		console.warn("Период не найден:", {  // Изменяем уровень логирования с error на warn
 			year: year,
 			error: formatError(periodError),
 			message: periodError?.message || "Неизвестная ошибка",
@@ -449,7 +449,10 @@ export async function getMapForYear(year: number) {
 			hint: periodError?.hint || "Подсказка недоступна",
 			code: periodError?.code || "Код ошибки недоступен",
 		});
-		return null;
+		return {
+			type: "FeatureCollection",
+			features: [], // Возвращаем пустую коллекцию вместо null
+		};
 	}
 
 	console.log("Найден период:", period);
