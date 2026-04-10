@@ -167,13 +167,13 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				}
 
 				// Расчет размера шрифта
-				const minFontSize = 6; // Уменьшаем минимальный размер шрифта
-				const maxFontSize = Math.min(height * 0.7, 20); // Умеренно ограничиваем максимальный размер
-				const fontSize = Math.max(minFontSize, Math.min((width / displayName.length) * 2.0, maxFontSize));
+				const minFontSize = 8; // Увеличиваем минимальный размер шрифта
+				const maxFontSize = Math.min(height * 0.8, 28); // Увеличиваем максимальный размер шрифта
+				const fontSize = Math.max(minFontSize, Math.min((width / Math.max(displayName.length, 3)) * 3.0, maxFontSize));
 
 				// Увеличиваем размер SVG-контейнера, чтобы избежать обрезания текста
-				const paddedWidth = width * 1.2; // Увеличиваем на 20%
-				const paddedHeight = height * 1.2; // Увеличиваем на 20%
+				const paddedWidth = Math.max(width * 1.4, fontSize * displayName.length * 0.8); // Увеличиваем на 40% и учитываем длину текста
+				const paddedHeight = Math.max(height * 1.4, fontSize * 1.4); // Увеличиваем на 40% и учитываем размер шрифта
 
 				const svg = `
 					<svg width="${paddedWidth}" height="${paddedHeight}" xmlns="http://www.w3.org/2000/svg">
@@ -192,8 +192,8 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				`;
 
 				// Корректируем размер иконки
-				const adjustedWidth = Math.max(paddedWidth, displayName.length * fontSize * 0.6);
-				const adjustedHeight = Math.max(paddedHeight, fontSize * 1.2);
+				const adjustedWidth = paddedWidth;
+				const adjustedHeight = paddedHeight;
 
 				const icon = L.divIcon({
 					html: svg,
