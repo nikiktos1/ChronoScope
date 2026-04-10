@@ -99,6 +99,11 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				  }
 				}
 
+				// Расчет размера шрифта
+				const minFontSize = 8;
+				const maxFontSize = Math.min(height * 0.6, 24); // Увеличен максимальный размер шрифта
+				const fontSize = Math.max(minFontSize, Math.min((width / displayName.length) * 2.5, maxFontSize));
+
 				const svg = `
 					<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
 						<text 
