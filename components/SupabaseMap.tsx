@@ -168,8 +168,8 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				if (totalArea > 0) {
 					// Применяем логарифмическую шкалу для более естественного масштабирования
 					sizeFactor = Math.log(totalArea + 1) / Math.log(minAreaThreshold + 1);
-					// Ограничиваем фактор масштабирования разумными пределами
-					sizeFactor = Math.max(0.2, Math.min(1.5, sizeFactor));
+					// Увеличиваем максимальный фактор для больших стран
+					sizeFactor = Math.max(0.3, Math.min(2.5, sizeFactor));
 				}
 
 				// Уменьшаем минимальные требования для отображения названий стран
@@ -193,9 +193,9 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				}
 
 				// Расчет размера шрифта с учетом размера территории
-				const baseFontSize = 14 * sizeFactor; // Увеличиваем базовый размер шрифта для больших стран
-				const minFontSize = Math.max(6, 8 * sizeFactor); // Минимальный размер шрифта
-				const maxFontSize = Math.min(height * 0.8, 36); // Увеличиваем максимальный размер для больших стран
+				const baseFontSize = 20 * sizeFactor; // Значительно увеличиваем базовый размер шрифта для больших стран
+				const minFontSize = Math.max(8, 10 * sizeFactor); // Минимальный размер шрифта
+				const maxFontSize = height * 0.9; // Убираем ограничение, чтобы для больших стран шрифт был еще крупнее
 				const fontSize = Math.max(minFontSize, Math.min(baseFontSize, maxFontSize));
 
 				// Увеличиваем размер SVG-контейнера, чтобы избежать обрезания текста
