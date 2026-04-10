@@ -8,6 +8,8 @@ Diagnose and fix the console error during Supabase-backed map loading where coun
 - Reproduced that the base tables are readable and replaced the fragile nested map query strategy in `lib/maps.ts` with separate country and geometry queries.
 - Added geometry normalization in `lib/maps.ts` so the map can tolerate malformed Supabase records where `Polygon` coordinates are stored with an extra nesting level.
 - Audited all `country_geometries` rows with the service-role key, fixed the only two malformed rows in Supabase, and revalidated map loading across all supported years.
+- Removed the old Russia-specific runtime workaround in `lib/maps.ts` that clipped the Russian Empire to a Europe-only bounding box and substituted 1914 geometry from 1913.
+- Restored the 1915 Russian Empire geometry in Supabase by copying the full verified 1914 geometry set, because 1915 contained only an incomplete subset of the same polygons.
 - Kept project deliverable statuses unchanged because the task is a reliability bugfix within the already implemented map experience.
 
 ## Key Decisions
@@ -15,9 +17,11 @@ Diagnose and fix the console error during Supabase-backed map loading where coun
 - Error serialization in `lib/maps.ts` should preserve non-enumerable fields so browser console logs remain actionable when Supabase returns atypical error objects.
 - The client should normalize malformed `Polygon` and `MultiPolygon` coordinate shapes defensively instead of crashing Leaflet at render time.
 - The database fix was limited to two unambiguous 1914 rows whose `Polygon` coordinates had a single extra array wrapper; no broader data rewrite was needed.
+- Russia for 1914 and 1915 should render from its actual stored geometry, not from Europe-only clipping heuristics; the previous workaround had become the source of distortion.
 
 ## Active Risks
 - The repository root currently has no `.git` directory, so commit and push cannot be completed until a git repository or remote target is available.
 - The upstream Memory Bank policy references `docs/README.md`, but this workspace currently uses `README.md` and `DOCS/`; this mismatch should be resolved in a future documentation pass if the user wants full policy convergence.
 - The exact original browser-side trigger for the empty-object error was not reproducible in direct Bun diagnostics, so the fix intentionally targets the unstable query shape rather than a verified Supabase outage.
 - Several years still contain countries without any geometry rows at all; the app now skips them safely, but historical coverage remains incomplete for those records.
+- 1915 still has many non-Russian countries without geometry, so the overall year remains incomplete even though the Russian block is now restored.

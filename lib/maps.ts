@@ -203,7 +203,9 @@ function clipRingAgainstVertical(
 	for (let index = 0; index < ring.length; index++) {
 		const current = ring[index];
 		const previous = ring[(index + ring.length - 1) % ring.length];
-		const currentInside = keepGreater ? current[0] >= bound : current[0] <= bound;
+		const currentInside = keepGreater
+			? current[0] >= bound
+			: current[0] <= bound;
 		const previousInside = keepGreater
 			? previous[0] >= bound
 			: previous[0] <= bound;
@@ -236,7 +238,9 @@ function clipRingAgainstHorizontal(
 	for (let index = 0; index < ring.length; index++) {
 		const current = ring[index];
 		const previous = ring[(index + ring.length - 1) % ring.length];
-		const currentInside = keepGreater ? current[1] >= bound : current[1] <= bound;
+		const currentInside = keepGreater
+			? current[1] >= bound
+			: current[1] <= bound;
 		const previousInside = keepGreater
 			? previous[1] >= bound
 			: previous[1] <= bound;
@@ -288,7 +292,11 @@ function clipPolygonToBounds(polygon: PolygonCoordinates, bounds: BBox) {
 }
 
 function dedupePolygons(polygons: PolygonCoordinates[]) {
-	return [...new Map(polygons.map((polygon) => [JSON.stringify(polygon), polygon])).values()];
+	return [
+		...new Map(
+			polygons.map((polygon) => [JSON.stringify(polygon), polygon]),
+		).values(),
+	];
 }
 
 function filterEuropeanEmpirePolygons(
@@ -301,12 +309,6 @@ function filterEuropeanEmpirePolygons(
 	}
 
 	const countryName = country.name_en || country.name;
-	const europeanRussiaBounds: BBox = {
-		minLng: 18,
-		maxLng: 68,
-		minLat: 43,
-		maxLat: 72,
-	};
 	const britishIslesBounds: BBox = {
 		minLng: -12,
 		maxLng: 3,
@@ -315,29 +317,14 @@ function filterEuropeanEmpirePolygons(
 	};
 
 	if (
-		countryName === "Russian Empire" ||
-		country.name === "Российская империя"
-	) {
-		const filtered = polygons
-			.filter((polygon) => {
-			const bounds = getPolygonBounds(polygon);
-			return bounds ? intersectsBounds(bounds, europeanRussiaBounds) : false;
-			})
-			.map((polygon) => clipPolygonToBounds(polygon, europeanRussiaBounds))
-			.filter((polygon): polygon is PolygonCoordinates => Boolean(polygon));
-
-		return dedupePolygons(filtered.length > 0 ? filtered : polygons);
-	}
-
-	if (
 		countryName === "British Empire" ||
 		countryName === "United Kingdom of Great Britain and Ireland" ||
 		country.name === "Британская империя"
 	) {
 		const filtered = polygons
 			.filter((polygon) => {
-			const bounds = getPolygonBounds(polygon);
-			return bounds ? intersectsBounds(bounds, britishIslesBounds) : false;
+				const bounds = getPolygonBounds(polygon);
+				return bounds ? intersectsBounds(bounds, britishIslesBounds) : false;
 			})
 			.map((polygon) => clipPolygonToBounds(polygon, britishIslesBounds))
 			.filter((polygon): polygon is PolygonCoordinates => Boolean(polygon));
@@ -378,7 +365,9 @@ async function getReplacementBritishGeometryFor1914() {
 		.eq("country_id", britain1915.id);
 
 	if (geometriesError || !geometries || geometries.length === 0) {
-		console.warn("Не удалось получить геометрию Британии 1915 для подмены 1914");
+		console.warn(
+			"Не удалось получить геометрию Британии 1915 для подмены 1914",
+		);
 		return null;
 	}
 
@@ -406,77 +395,6 @@ async function getReplacementBritishGeometryFor1914() {
 	const filtered = filterEuropeanEmpirePolygons(
 		1915,
 		{ id: -1, name: "Британская империя", name_en: "British Empire" },
-		allCoords,
-	);
-
-	if (filtered.length === 0) {
-		return null;
-	}
-
-	return {
-		type: filtered.length === 1 ? "Polygon" : "MultiPolygon",
-		coordinates: filtered.length === 1 ? filtered[0] : filtered,
-	} as FeatureGeometry;
-}
-
-async function getReplacementRussianGeometryFor1914() {
-	const { data: period1913, error: periodError } = await publicSupabase
-		.from("historical_periods")
-		.select("id")
-		.eq("year", 1913)
-		.maybeSingle();
-
-	if (periodError || !period1913) {
-		console.warn("Не удалось получить период 1913 для подмены России");
-		return null;
-	}
-
-	const { data: russia1913, error: countryError } = await publicSupabase
-		.from("countries")
-		.select("id")
-		.eq("period_id", period1913.id)
-		.eq("name", "Российская империя")
-		.maybeSingle();
-
-	if (countryError || !russia1913) {
-		console.warn("Не удалось найти Россию 1913 для подмены 1914");
-		return null;
-	}
-
-	const { data: geometries, error: geometriesError } = await publicSupabase
-		.from("country_geometries")
-		.select("geometry_type, coordinates")
-		.eq("country_id", russia1913.id);
-
-	if (geometriesError || !geometries || geometries.length === 0) {
-		console.warn("Не удалось получить геометрию России 1913 для подмены 1914");
-		return null;
-	}
-
-	const allCoords: PolygonCoordinates[] = [];
-	for (const geometry of geometries) {
-		const normalizedGeometry = normalizeGeometry(
-			geometry.geometry_type,
-			geometry.coordinates,
-		);
-
-		if (!normalizedGeometry) {
-			continue;
-		}
-
-		if (normalizedGeometry.geometryType === "Polygon") {
-			allCoords.push(normalizedGeometry.coordinates);
-			continue;
-		}
-
-		normalizedGeometry.coordinates.forEach((polygon) => {
-			allCoords.push(polygon);
-		});
-	}
-
-	const filtered = filterEuropeanEmpirePolygons(
-		1913,
-		{ id: -1, name: "Российская империя", name_en: "Russian Empire" },
 		allCoords,
 	);
 
@@ -594,8 +512,6 @@ export async function getMapForYear(year: number) {
 	const geometriesByCountryId = new Map<number, CountryGeometryRow[]>();
 	const replacementBritishGeometryFor1914 =
 		year === 1914 ? await getReplacementBritishGeometryFor1914() : null;
-	const replacementRussianGeometryFor1914 =
-		year === 1914 ? await getReplacementRussianGeometryFor1914() : null;
 
 	for (const geometry of geometries ?? []) {
 		const countryGeometries =
@@ -655,7 +571,11 @@ export async function getMapForYear(year: number) {
 
 		if (allCoords.length === 0) return;
 
-		const displayCoords = filterEuropeanEmpirePolygons(year, country, allCoords);
+		const displayCoords = filterEuropeanEmpirePolygons(
+			year,
+			country,
+			allCoords,
+		);
 		if (displayCoords.length === 0) return;
 
 		// Определяем тип геометрии
@@ -704,21 +624,6 @@ export async function getMapForYear(year: number) {
 			features[featureIndex] = {
 				...features[featureIndex],
 				geometry: replacementBritishGeometryFor1914,
-			};
-		}
-	}
-
-	if (year === 1914 && replacementRussianGeometryFor1914) {
-		const featureIndex = features.findIndex((feature) => {
-			const name = feature.properties?.name;
-			const englishName = feature.properties?.name_en;
-			return name === "Российская империя" || englishName === "Russian Empire";
-		});
-
-		if (featureIndex !== -1) {
-			features[featureIndex] = {
-				...features[featureIndex],
-				geometry: replacementRussianGeometryFor1914,
 			};
 		}
 	}

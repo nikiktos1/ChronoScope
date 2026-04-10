@@ -20,10 +20,10 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 			});
 			labelsRef.current = [];
 
-			if (!data.features) return;
+			if (!data?.features) return;
 
 			data.features.forEach((feature) => {
-				if (!feature.geometry || !feature.properties) return;
+				if (!feature?.geometry || !feature?.properties) return;
 
 				const name = feature.properties.name || feature.properties.name_en;
 				if (!name) return;
@@ -76,10 +76,28 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 
 				const center = map.latLngToContainerPoint(bounds.getCenter());
 				const size = map.latLngToContainerPoint(bounds.getNorthEast());
-				const width = Math.abs(size.x - center.x);
-				const height = Math.abs(size.y - center.y);
+				const width = Math.abs(size.x - center.x) * 2; // Удваиваем ширину для полного размера
+				const height = Math.abs(size.y - center.y) * 2; // Удваиваем высоту для полного размера
 
-				if (width < 30 || height < 10) return;
+				// Минимальные размеры теперь зависят от масштаба карты
+				const zoom = map.getZoom();
+				const minRequiredWidth = Math.max(30, 150 / zoom); // Уменьшаем требования к ширине при увеличении
+				const minRequiredHeight = Math.max(10, 50 / zoom); // Уменьшаем требования к высоте при увеличении
+
+				if (width < minRequiredWidth || height < minRequiredHeight) return;
+
+				// Только для очень маленьких государств показываем сокращенное название или аббревиатуру
+				let displayName = name;
+				if (width < 60 || height < 30) {
+				  // Используем имя или аббревиатуру, если доступна
+				  const abbrev = feature.properties.ABBREVN;
+				  if (abbrev && abbrev.length < name.length) {
+				    displayName = abbrev;
+				  } else if (name.length > 10) {
+				    // Для длинных названий на маленьких территориях - делаем сокращение
+				    displayName = name.substring(0, 6) + "...";
+				  }
+				}
 
 				const svg = `
 					<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
@@ -88,11 +106,12 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 							y="50%" 
 							text-anchor="middle" 
 							dominant-baseline="middle"
-							fill="rgba(255,255,255,0.85)"
-							font-size="${Math.min((width / name.length) * 2, height * 0.45)}px"
+							fill="rgba(255,255,255,0.9)"
+							font-size="${fontSize}px"
 							font-weight="bold"
-							style="text-shadow: 1px 1px 3px rgba(0,0,0,0.9), -1px -1px 3px rgba(0,0,0,0.9); pointer-events: none;"
-						>${name}</text>
+							font-family="sans-serif"
+							style="text-shadow: 1px 1px 2px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.9); pointer-events: none;"
+						>${displayName}</text>
 					</svg>
 				`;
 
@@ -353,9 +372,9 @@ export default function SupabaseMap({
 					attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 				/>
 
-				{mapData && <CountryLabels data={mapData} />}
+				{mapData && mapData.features && <CountryLabels data={mapData} />}
 
-				{mapData && (
+				{mapData && mapData.features && (
 					<>
 						{/* Сначала рендерим Римскую империю (фон) */}
 						<GeoJSON

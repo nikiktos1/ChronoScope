@@ -49,6 +49,9 @@ The codebase contains a working interactive atlas foundation with implemented ma
 - Audited all `630` `country_geometries` rows with the service-role key and confirmed only two rows were structurally invalid.
 - Repaired the two malformed 1914 rows directly in Supabase and confirmed there are no remaining invalid `country_geometries` records.
 - Revalidated map loading for every available year; remaining issues are limited to countries that have no geometry rows, not broken coordinate structures.
+- Removed the Russia-specific Europe-only clipping workaround and the 1914-from-1913 Russian geometry substitution from `lib/maps.ts`.
+- Repaired 1915 Russian Empire coverage in Supabase by replacing its incomplete geometry subset with the full verified 1914 geometry set.
+- Verified via `getMapForYear` that both 1914 and 1915 now render the Russian Empire as `25` polygons instead of the previously truncated shape.
 
 ## Контроль изменений
 last_checked_commit: 2026-04-10
