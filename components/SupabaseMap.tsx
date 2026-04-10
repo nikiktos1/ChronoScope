@@ -487,9 +487,9 @@ export default function SupabaseMap({
 					attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 				/>
 
-				{mapData && mapData.features && <CountryLabels data={mapData} />}
+				{mapData && mapData.features && mapData.features.length > 0 && <CountryLabels data={mapData} />}
 
-				{mapData && mapData.features && (
+				{mapData && mapData.features && mapData.features.length > 0 && (
 					<>
 						{/* Сначала рендерим Римскую империю (фон) */}
 						<GeoJSON
