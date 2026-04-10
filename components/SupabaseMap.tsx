@@ -146,10 +146,10 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				const width = Math.abs(size.x - center.x) * 2; // Удваиваем ширину для полного размера
 				const height = Math.abs(size.y - center.y) * 2; // Удваиваем высоту для полного размера
 
-				// Минимальные размеры теперь зависят от масштаба карты
+				// Уменьшаем минимальные требования для отображения названий стран
 				const zoom = map.getZoom();
-				const minRequiredWidth = Math.max(30, 150 / zoom); // Уменьшаем требования к ширине при увеличении
-				const minRequiredHeight = Math.max(10, 50 / zoom); // Уменьшаем требования к высоте при увеличении
+				const minRequiredWidth = Math.max(10, 50 / zoom); // Значительно снижаем требования к ширине
+				const minRequiredHeight = Math.max(5, 20 / zoom); // Значительно снижаем требования к высоте
 
 				if (width < minRequiredWidth || height < minRequiredHeight) return;
 
@@ -167,34 +167,42 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				}
 
 				// Расчет размера шрифта
-				const minFontSize = 8;
-				const maxFontSize = Math.min(height * 0.6, 24); // Увеличен максимальный размер шрифта
-				const fontSize = Math.max(minFontSize, Math.min((width / displayName.length) * 2.5, maxFontSize));
+				const minFontSize = 6; // Уменьшаем минимальный размер шрифта
+				const maxFontSize = Math.min(height * 0.7, 20); // Умеренно ограничиваем максимальный размер
+				const fontSize = Math.max(minFontSize, Math.min((width / displayName.length) * 2.0, maxFontSize));
+
+				// Увеличиваем размер SVG-контейнера, чтобы избежать обрезания текста
+				const paddedWidth = width * 1.2; // Увеличиваем на 20%
+				const paddedHeight = height * 1.2; // Увеличиваем на 20%
 
 				const svg = `
-					<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+					<svg width="${paddedWidth}" height="${paddedHeight}" xmlns="http://www.w3.org/2000/svg">
 						<text 
 							x="50%" 
 							y="50%" 
 							text-anchor="middle" 
 							dominant-baseline="middle"
-							fill="rgba(255,255,255,0.9)"
+							fill="rgba(255,255,255,0.95)"
 							font-size="${fontSize}px"
 							font-weight="bold"
 							font-family="sans-serif"
-							style="text-shadow: 1px 1px 2px rgba(0,0,0,0.9), -1px -1px 2px rgba(0,0,0,0.9); pointer-events: none;"
+							style="text-shadow: 1px 1px 3px rgba(0,0,0,1), -1px -1px 3px rgba(0,0,0,1); pointer-events: none;"
 						>${displayName}</text>
 					</svg>
 				`;
 
+				// Корректируем размер иконки
+				const adjustedWidth = Math.max(paddedWidth, displayName.length * fontSize * 0.6);
+				const adjustedHeight = Math.max(paddedHeight, fontSize * 1.2);
+
 				const icon = L.divIcon({
 					html: svg,
 					className: "country-label-svg",
-					iconSize: [width, height],
-					iconAnchor: [width / 2, height / 2],
+					iconSize: [adjustedWidth, adjustedHeight],
+					iconAnchor: [adjustedWidth / 2, adjustedHeight / 2],
 				});
 
-				const marker = L.marker(bounds.getCenter(), { icon }).addTo(map);
+				const marker = L.marker(L.latLng(centroid[0], centroid[1]), { icon }).addTo(map);
 				labelsRef.current.push(marker);
 			});
 		}
