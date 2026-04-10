@@ -193,10 +193,10 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				}
 
 				// Расчет размера шрифта с учетом размера территории
-				const baseFontSize = 20 * sizeFactor; // Значительно увеличиваем базовый размер шрифта для больших стран
-				const minFontSize = Math.max(8, 10 * sizeFactor); // Минимальный размер шрифта
-				const maxFontSize = height * 0.9; // Убираем ограничение, чтобы для больших стран шрифт был еще крупнее
-				const fontSize = Math.max(minFontSize, Math.min(baseFontSize, maxFontSize));
+				const baseFontSize = 50 * sizeFactor; // Увеличиваем в 2-3 раза для больших стран как Россия
+				const minFontSize = 8; // Не уменьшаем минимум - оставляем 8px
+				const maxFontSize = height; // Максимальный размер по всей высоте территории
+				const fontSize = Math.max(minFontSize, baseFontSize); // Убираем ограничение min для больших стран
 
 				// Увеличиваем размер SVG-контейнера, чтобы избежать обрезания текста
 				const paddedWidth = Math.max(width * 1.2, fontSize * displayName.length * 0.8); // Уменьшаем увеличение
