@@ -161,19 +161,15 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				const isElongated = aspectRatio > 2.5; // Если отношение сторон > 2.5, то территория считается вытянутой
 				const orientation = width > height ? 'horizontal' : 'vertical'; // Определяем ориентацию
 
-				// Нормализуем размер шрифта в зависимости от площади территории с учётом сбалансированного масштабирования
-				const referenceArea = 200; // эталонная площадь (условная) для масштабирования
-				const minAcceptableSize = 0.5; // минимальный размер относительно эталонного
-				const maxAcceptableSize = 2.0; // максимальный размер относительно эталонного
-				
+				// Нормализуем размер шрифта в зависимости от площади территории
+				const minAreaThreshold = 0.1; // минимальная пороговая площадь
 				let sizeFactor = 1.0;
 				
 				if (totalArea > 0) {
-					// Используем степенную функцию для более сбалансированного масштабирования
-					// Это уменьшает разницу между размерами текста для больших и маленьких стран
-					sizeFactor = Math.pow(totalArea / referenceArea, 0.3);
+					// Применяем логарифмическую шкалу для более естественного масштабирования
+					sizeFactor = Math.log(totalArea + 1) / Math.log(minAreaThreshold + 1);
 					// Ограничиваем фактор масштабирования разумными пределами
-					sizeFactor = Math.max(minAcceptableSize, Math.min(maxAcceptableSize, sizeFactor));
+					sizeFactor = Math.max(0.2, Math.min(1.5, sizeFactor));
 				}
 
 				// Уменьшаем минимальные требования для отображения названий стран
@@ -197,9 +193,9 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				}
 
 				// Расчет размера шрифта с учетом размера территории
-				const baseFontSize = 10 * sizeFactor; // Уменьшаем базовый размер шрифта
-				const minFontSize = Math.max(5, 6 * sizeFactor); // Уменьшаем минимальный размер шрифта
-				const maxFontSize = Math.min(height * 0.6, 24); // Уменьшаем максимальный размер
+				const baseFontSize = 14 * sizeFactor; // Увеличиваем базовый размер шрифта для больших стран
+				const minFontSize = Math.max(6, 8 * sizeFactor); // Минимальный размер шрифта
+				const maxFontSize = Math.min(height * 0.8, 36); // Увеличиваем максимальный размер для больших стран
 				const fontSize = Math.max(minFontSize, Math.min(baseFontSize, maxFontSize));
 
 				// Увеличиваем размер SVG-контейнера, чтобы избежать обрезания текста
