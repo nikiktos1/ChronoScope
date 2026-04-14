@@ -626,7 +626,8 @@ export async function getMapForYear(year: number) {
 		if (featureIndex !== -1) {
 			features[featureIndex] = {
 				...features[featureIndex],
-				geometry: replacementBritishGeometryFor1914,
+				geometry:
+					replacementBritishGeometryFor1914 as unknown as GeoJSON.Geometry,
 			};
 		}
 	}

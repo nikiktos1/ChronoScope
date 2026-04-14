@@ -16,30 +16,31 @@ async function findStringCoords() {
 
     console.log(`Checking ${geometries?.length || 0} geometries...\n`);
     
-    if (geometries) {
-        let found = false;
-        for (const g of geometries) {
-            const coords = g.coordinates;
-            const coordType = typeof coords;
-            
-            // Check for string type or string-like structure
-            if (coordType === 'string') {
-                console.log(`!!! STRING TYPE FOUND:`);
-                console.log(`    Country: ${g.countries?.name}`);
-                console.log(`    Period: ${g.countries?.period_id}`);
-                console.log(`    Value: ${coords.substring(0, 200)}`);
-                found = true;
-            }
-            
-            // Check for JSON string inside
-            const str = JSON.stringify(coords);
-            if (str.startsWith('"')) {
-                console.log(`!!! JSON STRING FOUND:`);
-                console.log(`    Country: ${g.countries?.name}`);
-                console.log(`    Period: ${g.countries?.period_id}`);
-                console.log(`    Value: ${str.substring(0, 200)}`);
-                found = true;
-            }
+	if (geometries) {
+		let found = false;
+		for (const g of geometries) {
+			const coords = g.coordinates;
+			const coordType = typeof coords;
+			const country = Array.isArray(g.countries) ? g.countries[0] : g.countries;
+			
+			// Check for string type or string-like structure
+			if (coordType === 'string') {
+				console.log(`!!! STRING TYPE FOUND:`);
+				console.log(`    Country: ${country?.name}`);
+				console.log(`    Period: ${country?.period_id}`);
+				console.log(`    Value: ${coords.substring(0, 200)}`);
+				found = true;
+			}
+			
+			// Check for JSON string inside
+			const str = JSON.stringify(coords);
+			if (str.startsWith('"')) {
+				console.log(`!!! JSON STRING FOUND:`);
+				console.log(`    Country: ${country?.name}`);
+				console.log(`    Period: ${country?.period_id}`);
+				console.log(`    Value: ${str.substring(0, 200)}`);
+				found = true;
+			}
         }
         
         if (!found) {

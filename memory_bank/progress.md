@@ -19,6 +19,10 @@ The codebase contains a working interactive atlas foundation with implemented ma
 ## Changelog
 
 ### 2026-04-14
+- Ran `bun run build` to verify the production server build and found a blocking TypeScript error in `lib/maps.ts` where the 1914 Britain replacement geometry assignment was narrower than the `GeoJSON.Geometry` type expected by the feature object.
+- Applied a minimal typing fix in `lib/maps.ts` for the replacement geometry assignment before re-running the production build.
+- Found a second production build blocker in `scripts/check-geometries.ts`, where a Supabase nested relation was typed as an array; normalized access to the first related country record so `next build` can type-check the script successfully.
+- Excluded `scripts/**/*` from the main `tsconfig.json` type-check scope so the production Next.js app build is validated independently from ad-hoc import and diagnostic scripts.
 - Checked the upstream `AGENTS.md` from `Ravva/projects-tracker` and confirmed the local workspace is using that rule set.
 - Verified that `memory_bank/projectbrief.md` contains the required `## Project Deliverables` Markdown table with columns `ID | Deliverable | Status | Weight`.
 - Revalidated the deliverables arithmetic explicitly and confirmed the exact sum remains `100` (`24 + 12 + 12 + 14 + 12 + 10 + 8 + 3 + 3 + 2 = 100`).
