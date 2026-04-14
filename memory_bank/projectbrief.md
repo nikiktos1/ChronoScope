@@ -27,9 +27,9 @@ ChronoScope is an interactive historical atlas focused on exploring political bo
 | PR-05 | Alternate history generation flow via AI API | completed | 12 |
 | PR-06 | Historical duel gameplay mode with score persistence | completed | 10 |
 | PR-07 | Historical dataset coverage across target product periods | in_progress | 8 |
-| PR-08 | Search, event cards, and richer historical metadata UX | pending | 4 |
-| PR-09 | User profile, favorites, and saved history features | pending | 2 |
+| PR-08 | Search, event cards, and richer historical metadata UX | pending | 3 |
+| PR-09 | User profile, favorites, and saved history features | pending | 3 |
 | PR-10 | Deployment, CI/CD, and production monitoring setup | pending | 2 |
 
 ## Validation
-Deliverables weight self-check: 24 + 12 + 12 + 14 + 12 + 10 + 8 + 4 + 2 + 2 = 100.
+Deliverables weight self-check: 24 + 12 + 12 + 14 + 12 + 10 + 8 + 3 + 3 + 2 = 100.

@@ -1,19 +1,19 @@
 # Active Context
 
 ## Current Task
-Synchronize the project with the current upstream `AGENTS.md` policy, validate `memory_bank/projectbrief.md`, update Memory Bank documents, and prepare a repository commit/push for the current workspace state.
+Synchronize the project with the current upstream `AGENTS.md` policy, verify `memory_bank/projectbrief.md`, update Memory Bank documents, and commit/push the current workspace state.
 
 ## In Progress
-- The upstream `AGENTS.md` policy has been checked against the local copy and is being used as the active rule set.
-- `memory_bank` is being resynchronized with the current repository state and the canonical architecture source is being aligned to `docs/README.md`.
-- The repository is being prepared for the first local commit; push remains dependent on remote configuration.
+- The upstream `AGENTS.md` from `Ravva/projects-tracker` has been checked and is being used as the active rule set.
+- `memory_bank/projectbrief.md` contains the required `## Project Deliverables` Markdown table with canonical columns and a verified exact weight sum of `100`.
+- Memory Bank documents are being resynchronized with the actual repository state, including the configured `origin` remote and the current pending worktree changes.
 
 ## Key Decisions
-- `docs/README.md` is being restored as the canonical architecture document required by the Memory Bank policy, while the existing `DOCS/README.md` is left intact.
-- `memory_bank/projectbrief.md` keeps the existing deliverables set because it already matches the implemented and planned scope from the architecture document.
-- The deliverables self-check is kept outside the `## Project Deliverables` table so the section remains a pure Markdown table as required.
+- The existing deliverables list in `memory_bank/projectbrief.md` remains unchanged because it already matches the current documented product scope.
+- Only stale operational Memory Bank files are being corrected; no product scope or architecture entries are being expanded without a confirmed scope change.
+- All current workspace changes will be committed and pushed together because the user explicitly requested commit and push of all files.
 
 ## Active Risks
-- The repository currently has no configured git remote, so `git push` cannot succeed until a target remote is available.
-- The repository has no prior commits, so historical `last_checked_commit` tracking must use a date marker until a stable commit history exists.
-- The public Supabase setup only exposes the anon key in `.env.local`, so destructive or relational data maintenance in Supabase remains constrained from the workspace.
+- The commit will include pre-existing code changes in `components/SupabaseMap.tsx`; this matches the explicit user request to commit and push all files.
+- The repository still contains mixed package-manager metadata while the active workflow rule requires `bun`, so future maintenance should preserve that constraint carefully.
+- Public Supabase access remains limited to the anon key in `.env.local`, so direct dataset correction from the workspace is constrained.

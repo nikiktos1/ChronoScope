@@ -12,11 +12,25 @@ The codebase contains a working interactive atlas foundation with implemented ma
 - Historical duel gameplay route with score handling.
 
 ## Known Issues
-- The repository has no configured git remote yet, so push is blocked until a destination remote is provided or created.
+- `package.json` still declares `pnpm` in `packageManager` while the active agent workflow requires using `bun`.
 - Historical data coverage for the full intended timeline is not yet validated as complete.
 - Product requirements such as richer search, event cards, user favorites, and operational deployment setup remain incomplete.
 
 ## Changelog
+
+### 2026-04-14
+- Checked the upstream `AGENTS.md` from `Ravva/projects-tracker` and confirmed the local workspace is using that rule set.
+- Verified that `memory_bank/projectbrief.md` contains the required `## Project Deliverables` Markdown table with columns `ID | Deliverable | Status | Weight`.
+- Revalidated the deliverables arithmetic explicitly and confirmed the exact sum remains `100` (`24 + 12 + 12 + 14 + 12 + 10 + 8 + 3 + 3 + 2 = 100`).
+- Updated `memory_bank/activeContext.md`, `memory_bank/techContext.md`, and `memory_bank/progress.md` to match the actual repository state, including the configured `origin` remote.
+
+### 2026-04-14
+- Reworked `components/SupabaseMap.tsx` so country label sizing is now based on the real projected screen bounds of the dominant polygon, fixing the issue where many countries ended up with nearly identical oversized labels.
+- Kept elongated-country label rotation but softened the vertical angle so countries like Norway can follow their length without a hard `-90` rotation.
+- Lowered country-label visibility thresholds and made label markers non-interactive so more countries get visible names while polygon clicks still open the country popup.
+- Removed the negative label z-index offset after it hid names for large countries such as Austria-Hungary; labels now stay visible above fills without blocking clicks.
+- Fixed label geometry normalization in `components/SupabaseMap.tsx` so plain `Polygon` countries are wrapped into the same polygon-list shape as `MultiPolygon` countries; this restores missing labels for countries that were being skipped by the downstream centroid and size calculations.
+- Revalidated `memory_bank/projectbrief.md` deliverable weights and corrected them to an exact arithmetic sum of `100` (`24 + 12 + 12 + 14 + 12 + 10 + 8 + 3 + 3 + 2 = 100`).
 
 ### 2026-04-10
 - Checked the upstream `AGENTS.md` from `ravva/projects-tracker` and confirmed the local file is aligned with the requested policy.
@@ -54,4 +68,4 @@ The codebase contains a working interactive atlas foundation with implemented ma
 - Verified via `getMapForYear` that both 1914 and 1915 now render the Russian Empire as `25` polygons instead of the previously truncated shape.
 
 ## Контроль изменений
-last_checked_commit: 2026-04-10
+last_checked_commit: 8ab5aeddd88119911919a304333279112e76d793

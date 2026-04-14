@@ -27,5 +27,5 @@
 - The public map flow depends on anon-readable access to both `countries` and `country_geometries`; the client code now avoids nested REST embeds to reduce PostgREST relation-resolution fragility.
 - The current dataset contains malformed polygon coordinate nesting in at least some map rows, so the client includes defensive geometry normalization to keep rendering stable.
 - `SUPABASE_SERVICE_ROLE_KEY` is required only for privileged maintenance tasks such as data repair scripts and full-database audits; the public map runtime does not depend on it.
-- The workspace is a local git repository, but it currently has no configured remote, so push operations require remote setup before they can succeed.
+- The workspace is a local git repository with a configured `origin` remote, so standard `git push` is available with the current credentials.
 - Markdown files are exempt from Biome checks per the upstream agent rule.

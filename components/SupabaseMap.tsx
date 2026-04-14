@@ -34,16 +34,14 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				};
 				const coordsAny = geometry.coordinates as unknown;
 
-				let allCoords: number[][][] = [];
+				let allCoords: number[][][][] = [];
 
 				if (geometry.type === "Polygon") {
-					allCoords = coordsAny as number[][][];
+					allCoords = [coordsAny as number[][][]];
 				} else if (geometry.type === "MultiPolygon") {
 					const multiCoords = coordsAny as number[][][][];
 					if (multiCoords) {
-						allCoords = multiCoords.filter(
-							(c) => c[0]?.[0],
-						) as unknown as number[][][];
+						allCoords = multiCoords.filter((polygon) => polygon[0]?.[0]);
 					}
 				}
 
@@ -52,30 +50,34 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				// Функция для вычисления приблизительной площади полигона
 				const getPolygonArea = (polygon: number[][][]): number => {
 					if (!polygon || polygon.length === 0) return 0;
-					
+
 					const ring = polygon[0]; // Внешнее кольцо полигона
 					if (!ring || ring.length < 3) return 0;
-					
+
 					// Используем формулу площади многоугольника (формула трапеций или шнуровая формула)
 					let area = 0;
 					for (let i = 0; i < ring.length - 1; i++) {
-						area += ring[i][0] * ring[i + 1][1];  // x_i * y_{i+1}
-						area -= ring[i][1] * ring[i + 1][0];  // y_i * x_{i+1}
+						area += ring[i][0] * ring[i + 1][1]; // x_i * y_{i+1}
+						area -= ring[i][1] * ring[i + 1][0]; // y_i * x_{i+1}
 					}
-					area += ring[ring.length - 1][0] * ring[0][1];  // x_{n-1} * y_0
-					area -= ring[ring.length - 1][1] * ring[0][0];  // y_{n-1} * x_0
-					
+					area += ring[ring.length - 1][0] * ring[0][1]; // x_{n-1} * y_0
+					area -= ring[ring.length - 1][1] * ring[0][0]; // y_{n-1} * x_0
+
 					return Math.abs(area) / 2;
 				};
 
 				// Функция для вычисления центра полигона методом средней точки
-				const getPolygonCentroid = (polygon: number[][][]): [number, number] | null => {
+				const getPolygonCentroid = (
+					polygon: number[][][],
+				): [number, number] | null => {
 					if (!polygon || polygon.length === 0) return null;
-					
+
 					const ring = polygon[0]; // Внешнее кольцо полигона
 					if (!ring || ring.length === 0) return null;
-					
-					let xSum = 0, ySum = 0, count = 0;
+
+					let xSum = 0,
+						ySum = 0,
+						count = 0;
 					for (const coord of ring) {
 						if (coord && coord.length >= 2) {
 							xSum += coord[0]; // долгота
@@ -83,7 +85,7 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 							count++;
 						}
 					}
-					
+
 					if (count === 0) return null;
 					return [ySum / count, xSum / count]; // [широта, долгота]
 				};
@@ -91,23 +93,32 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				// Для MultiPolygon вычисляем суммарную площадь и центр
 				let centroid: [number, number] | null = null;
 				let totalArea = 0;
-				
+				let largestPolygon: number[][][] | null = null;
+				let largestPolygonArea = 0;
+
 				if (geometry.type === "Polygon" && allCoords.length > 0) {
 					totalArea = getPolygonArea(allCoords[0]);
 					centroid = getPolygonCentroid(allCoords[0]);
+					largestPolygon = allCoords[0];
+					largestPolygonArea = totalArea;
 				} else if (geometry.type === "MultiPolygon" && allCoords.length > 0) {
-					let weightedX = 0, weightedY = 0;
+					let weightedX = 0,
+						weightedY = 0;
 					for (const poly of allCoords) {
-						const area = getPolygonArea([poly[0]]); // только внешнее кольцо
+						const area = getPolygonArea(poly);
 						totalArea += area;
-						
-						const polyCentroid = getPolygonCentroid([poly[0]]);
+						if (area > largestPolygonArea) {
+							largestPolygonArea = area;
+							largestPolygon = poly;
+						}
+
+						const polyCentroid = getPolygonCentroid(poly);
 						if (polyCentroid && area > 0) {
 							weightedX += polyCentroid[0] * area;
 							weightedY += polyCentroid[1] * area;
 						}
 					}
-					
+
 					if (totalArea > 0) {
 						centroid = [weightedX / totalArea, weightedY / totalArea];
 					} else {
@@ -123,12 +134,10 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 					let minY = Infinity,
 						maxY = -Infinity;
 
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					allCoords.forEach((polygon: any) => {
+					allCoords.forEach((polygon: number[][][]) => {
 						const ring = polygon[0];
 						if (!ring) return;
-						// eslint-disable-next-line @typescript-eslint/no-explicit-any
-						ring.forEach((coord: any) => {
+						ring.forEach((coord: number[]) => {
 							if (coord[0] < minX) minX = coord[0];
 							if (coord[0] > maxX) maxX = coord[0];
 							if (coord[1] < minY) minY = coord[1];
@@ -143,70 +152,89 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 				}
 
 				if (!centroid) return;
-				
-				// Создаем bounds на основе реального размера территории
-				const bounds = L.latLngBounds([
-					[centroid[0] - 2, centroid[1] - 2], // базовые границы
-					[centroid[0] + 2, centroid[1] + 2],
-				]);
 
-				// Преобразуем географические координаты в пиксельные для определения размера территории на карте
-				const northWest = map.latLngToContainerPoint(bounds.getNorthWest());
-				const southEast = map.latLngToContainerPoint(bounds.getSouthEast());
-				const width = Math.abs(southEast.x - northWest.x);
-				const height = Math.abs(southEast.y - northWest.y);
+				const labelPolygon = largestPolygon ?? allCoords[0];
+				const labelRing = labelPolygon?.[0];
+				if (!labelRing || labelRing.length === 0) return;
+
+				let minPointX = Infinity;
+				let maxPointX = -Infinity;
+				let minPointY = Infinity;
+				let maxPointY = -Infinity;
+
+				for (const coord of labelRing) {
+					if (!coord || coord.length < 2) continue;
+					const point = map.latLngToContainerPoint(
+						L.latLng(coord[1], coord[0]),
+					);
+					if (point.x < minPointX) minPointX = point.x;
+					if (point.x > maxPointX) maxPointX = point.x;
+					if (point.y < minPointY) minPointY = point.y;
+					if (point.y > maxPointY) maxPointY = point.y;
+				}
+
+				if (
+					minPointX === Infinity ||
+					maxPointX === -Infinity ||
+					minPointY === Infinity ||
+					maxPointY === -Infinity
+				) {
+					return;
+				}
+
+				const width = maxPointX - minPointX;
+				const height = maxPointY - minPointY;
 
 				// Определение отношения сторон для определения вытянутости территории
 				const aspectRatio = width > height ? width / height : height / width;
 				const isElongated = aspectRatio > 2.5; // Если отношение сторон > 2.5, то территория считается вытянутой
-				const orientation = width > height ? 'horizontal' : 'vertical'; // Определяем ориентацию
-
-				// Нормализуем размер шрифта в зависимости от площади территории
-				const minAreaThreshold = 0.1; // минимальная пороговая площадь
-				let sizeFactor = 1.0;
-				
-				if (totalArea > 0) {
-					// Применяем логарифмическую шкалу для более естественного масштабирования
-					sizeFactor = Math.log(totalArea + 1) / Math.log(minAreaThreshold + 1);
-					// Увеличиваем максимальный фактор для больших стран
-					sizeFactor = Math.max(0.3, Math.min(2.5, sizeFactor));
-				}
+				const orientation = width > height ? "horizontal" : "vertical"; // Определяем ориентацию
 
 				// Уменьшаем минимальные требования для отображения названий стран
 				const zoom = map.getZoom();
-				const minRequiredWidth = Math.max(10, 50 / zoom); // Значительно снижаем требования к ширине
-				const minRequiredHeight = Math.max(5, 20 / zoom); // Значительно снижаем требования к высоте
+				const minRequiredWidth = Math.max(6, 22 / zoom);
+				const minRequiredHeight = Math.max(4, 10 / zoom);
 
 				if (width < minRequiredWidth || height < minRequiredHeight) return;
 
 				// Только для очень маленьких государств показываем сокращенное название или аббревиатуру
 				let displayName = name;
 				if (width < 60 || height < 30) {
-				  // Используем имя или аббревиатуру, если доступна
-				  const abbrev = feature.properties.ABBREVN;
-				  if (abbrev && abbrev.length < name.length) {
-				    displayName = abbrev;
-				  } else if (name.length > 10) {
-				    // Для длинных названий на маленьких территориях - делаем сокращение
-				    displayName = name.substring(0, 6) + "...";
-				  }
+					// Используем имя или аббревиатуру, если доступна
+					const abbrev = feature.properties.ABBREVN;
+					if (abbrev && abbrev.length < name.length) {
+						displayName = abbrev;
+					} else if (name.length > 10) {
+						// Для длинных названий на маленьких территориях - делаем сокращение
+						displayName = `${name.substring(0, 6)}...`;
+					}
 				}
 
-				// Расчет размера шрифта с учетом размера территории
-				const baseFontSize = 50 * sizeFactor; // Увеличиваем в 2-3 раза для больших стран как Россия
-				const minFontSize = 8; // Не уменьшаем минимум - оставляем 8px
-				const maxFontSize = height; // Максимальный размер по всей высоте территории
-				const fontSize = Math.max(minFontSize, baseFontSize); // Убираем ограничение min для больших стран
+				// Размер названия зависит от фактических размеров страны на экране.
+				const textWidthLimit = width * (isElongated ? 0.92 : 0.78);
+				const textHeightLimit = height * (isElongated ? 0.3 : 0.42);
+				const widthDrivenFontSize =
+					textWidthLimit / Math.max(displayName.length * 0.62, 1);
+				const heightDrivenFontSize = textHeightLimit;
+				const minFontSize = width < 24 || height < 14 ? 6 : 8;
+				const maxFontSize = Math.min(64, Math.max(width, height) * 0.18);
+				const fontSize = Math.max(
+					minFontSize,
+					Math.min(widthDrivenFontSize, heightDrivenFontSize, maxFontSize),
+				);
 
 				// Увеличиваем размер SVG-контейнера, чтобы избежать обрезания текста
-				const paddedWidth = Math.max(width * 1.2, fontSize * displayName.length * 0.8); // Уменьшаем увеличение
-				const paddedHeight = Math.max(height * 1.2, fontSize * 1.3); // Уменьшаем увеличение
+				const paddedWidth = Math.max(
+					width * 1.05,
+					fontSize * displayName.length * 0.72,
+				);
+				const paddedHeight = Math.max(height * 1.05, fontSize * 1.2);
 
 				// Определяем угол поворота для вытянутых территорий
 				let rotationAngle = 0;
 				if (isElongated) {
 					// Поворачиваем текст в зависимости от ориентации территории
-					rotationAngle = orientation === 'horizontal' ? 0 : -90; // Горизонтальная - без поворота, вертикальная - на -90 градусов
+					rotationAngle = orientation === "horizontal" ? 0 : -72;
 				}
 
 				const svg = `
@@ -232,12 +260,16 @@ function CountryLabels({ data }: { data: FeatureCollection }) {
 
 				const icon = L.divIcon({
 					html: svg,
-					className: "country-label-svg",
+					className: "country-label-svg pointer-events-none",
 					iconSize: [adjustedWidth, adjustedHeight],
 					iconAnchor: [adjustedWidth / 2, adjustedHeight / 2],
 				});
 
-				const marker = L.marker(L.latLng(centroid[0], centroid[1]), { icon }).addTo(map);
+				const marker = L.marker(L.latLng(centroid[0], centroid[1]), {
+					icon,
+					interactive: false,
+					keyboard: false,
+				}).addTo(map);
 				labelsRef.current.push(marker);
 			});
 		}
@@ -371,7 +403,9 @@ export default function SupabaseMap({
 		if (!partOf || partOf === countryName) return false;
 
 		const governmentText = (government || "").toLowerCase();
-		return /(марионет|протекторат|оккуп|в изгнании|клиент)/.test(governmentText);
+		return /(марионет|протекторат|оккуп|в изгнании|клиент)/.test(
+			governmentText,
+		);
 	};
 
 	// Обработчик клика по стране с расширенной информацией
@@ -487,9 +521,11 @@ export default function SupabaseMap({
 					attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 				/>
 
-				{mapData && mapData.features && mapData.features.length > 0 && <CountryLabels data={mapData} />}
+				{mapData?.features && mapData.features.length > 0 && (
+					<CountryLabels data={mapData} />
+				)}
 
-				{mapData && mapData.features && mapData.features.length > 0 && (
+				{mapData?.features && mapData.features.length > 0 && (
 					<>
 						{/* Сначала рендерим Римскую империю (фон) */}
 						<GeoJSON
