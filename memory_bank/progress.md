@@ -23,6 +23,7 @@ The codebase contains a working interactive atlas foundation with implemented ma
 - Verified that `memory_bank/projectbrief.md` contains the required `## Project Deliverables` Markdown table with columns `ID | Deliverable | Status | Weight`.
 - Revalidated the deliverables arithmetic explicitly and confirmed the exact sum remains `100` (`24 + 12 + 12 + 14 + 12 + 10 + 8 + 3 + 3 + 2 = 100`).
 - Updated `memory_bank/activeContext.md`, `memory_bank/techContext.md`, and `memory_bank/progress.md` to match the actual repository state, including the configured `origin` remote.
+- Created commit `f3f6f4a03c2f5a0f4f29ea861948d242b84ed36d` for the synchronized workspace state before the final `last_checked_commit` update.
 
 ### 2026-04-14
 - Reworked `components/SupabaseMap.tsx` so country label sizing is now based on the real projected screen bounds of the dominant polygon, fixing the issue where many countries ended up with nearly identical oversized labels.
@@ -68,4 +69,4 @@ The codebase contains a working interactive atlas foundation with implemented ma
 - Verified via `getMapForYear` that both 1914 and 1915 now render the Russian Empire as `25` polygons instead of the previously truncated shape.
 
 ## Контроль изменений
-last_checked_commit: 8ab5aeddd88119911919a304333279112e76d793
+last_checked_commit: f3f6f4a03c2f5a0f4f29ea861948d242b84ed36d
