@@ -41,6 +41,7 @@ export default function EnhancedMapPage() {
             >
               <option value={1914}>1914 н.э.</option>
               <option value={1915}>1915 н.э.</option>
+              <option value={1916}>1916 н.э.</option>
             </select>
           </div>
         </div>

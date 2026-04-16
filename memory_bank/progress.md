@@ -19,6 +19,10 @@ The codebase contains a working interactive atlas foundation with implemented ma
 ## Changelog
 
 ### 2026-04-14
+- Added a new `scripts/import-1916.ts` pipeline that imports the 1916 period from `CShapes 2.0` without hand-drawing borders, using the `1916-07-01` snapshot and storing results in `historical_periods`, `countries`, and `country_geometries`.
+- Imported period `1916` into Supabase as `1916: Первая мировая война` with `151` countries and `151` geometries; the stored source metadata now points to `CShapes 2.0`, with Europe intended to be checked against Euratlas as a reference source.
+- Added `1916` to the year selectors in `components/TimeSlider.tsx` and `app/enhanced-map/page.tsx`.
+- Re-ran `bun run build` after the 1916 import and UI changes; the production build completed successfully.
 - Ran `bun run build` to verify the production server build and found a blocking TypeScript error in `lib/maps.ts` where the 1914 Britain replacement geometry assignment was narrower than the `GeoJSON.Geometry` type expected by the feature object.
 - Applied a minimal typing fix in `lib/maps.ts` for the replacement geometry assignment before re-running the production build.
 - Found a second production build blocker in `scripts/check-geometries.ts`, where a Supabase nested relation was typed as an array; normalized access to the first related country record so `next build` can type-check the script successfully.
